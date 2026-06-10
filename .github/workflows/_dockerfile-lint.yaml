@@ -1,0 +1,20 @@
+---
+name: Dockerfile Lint
+
+on:
+  workflow_call:
+
+jobs:
+  dockerfilelint:
+    name: Dockerfile Lint
+    runs-on: arc-runners
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+  
+      - name: Hadolint
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: Dockerfile
