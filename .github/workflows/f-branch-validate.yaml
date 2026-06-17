@@ -6,6 +6,9 @@ on:
     branches-ignore:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   changes:
     name: Check for workflow or action file changes
@@ -14,13 +17,13 @@ jobs:
       workflows: ${{ steps.changed.outputs.any_changed }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           fetch-depth: 0
 
       - name: Check for workflow file changes
         id: changed
-        uses: tj-actions/changed-files@v47.0.6
+        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
         with:
           files: |
             .github/workflows/**/*.yaml
@@ -29,9 +32,8 @@ jobs:
             .github/actions/**/*.yml
 
   gha-checks:
-    name: GitHub Actions Workflow Checks
+    name: GitHub Actions Feature Branch Workflow Checks
     needs: changes
     if: needs.changes.outputs.workflows == 'true'
-    uses: ./.github/workflows/_gha-workflow-checks.yaml
-    with:
-      run_sonarqube_scan: false
+    uses: ./.github/workflows/_gha-f-workflow-checks.yaml
+
