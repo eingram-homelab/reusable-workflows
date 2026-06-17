@@ -1,0 +1,31 @@
+---
+name: GitHub Actions Feature Branch Workflow Checks
+
+on:
+  workflow_call:
+    inputs:
+      changed_files_patterns:
+        description: 'Newline-separated glob patterns passed to tj-actions/changed-files'
+        type: string
+        default: |
+          .github/workflows/**
+      yamllint_config:
+        description: 'Path to yamllint config file relative to the repository root'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out. Defaults to the current ref.'
+        type: string
+        default: ''
+      fetch_depth:
+        description: 'Git fetch depth to use during checkout. Use 0 for full history.'
+        type: number
+        default: 0
+
+jobs:
+  validate:
+    name: Run Validation Checks
+    uses: ./.github/workflows/_validate-workflow.yaml
+    with:
+      changed_files_patterns: ${{ inputs.changed_files_patterns }}
+      yamllint_config: ${{ inputs.yamllint_config }}

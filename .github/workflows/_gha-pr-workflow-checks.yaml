@@ -1,5 +1,5 @@
 ---
-name: GitHub Actions Workflow Checks
+name: GitHub Actions PR Workflow Checks
 
 on:
   workflow_call:
@@ -37,10 +37,6 @@ on:
         description: 'Whether to run the SonarQube scan after validation checks'
         type: boolean
         default: true
-    secrets:
-      sonar_token:
-        description: 'SonarQube or SonarQube Cloud token used for authentication'
-        required: false
 
 jobs:
   validate:
