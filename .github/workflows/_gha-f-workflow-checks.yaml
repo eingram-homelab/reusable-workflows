@@ -25,7 +25,7 @@ on:
 jobs:
   validate:
     name: Run Validation Checks
-    uses: ./.github/workflows/_validate-workflow.yaml
+    uses: ./.github/workflows/_gha-validate-workflow.yaml
     with:
       changed_files_patterns: ${{ inputs.changed_files_patterns }}
       yamllint_config: ${{ inputs.yamllint_config }}
