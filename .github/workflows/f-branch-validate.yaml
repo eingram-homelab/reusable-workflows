@@ -23,13 +23,34 @@ jobs:
 
       - name: Check for workflow file changes
         id: changed
-        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
-        with:
-          files: |
-            .github/workflows/**/*.yaml
-            .github/workflows/**/*.yml
-            .github/actions/**/*.yaml
-            .github/actions/**/*.yml
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          base_sha="${{ github.event.before }}"
+          head_sha="${{ github.sha }}"
+
+          # New branches can have an all-zero before SHA. Fall back to the first parent.
+          if [[ -z "$base_sha" || "$base_sha" =~ ^0+$ ]]; then
+            if git rev-parse "${head_sha}^" >/dev/null 2>&1; then
+              base_sha="${head_sha}^"
+            else
+              base_sha="$head_sha"
+            fi
+          fi
+
+          changed_files="$(git diff --name-only "$base_sha" "$head_sha" -- \
+            ':(glob).github/workflows/**/*.yaml' \
+            ':(glob).github/workflows/**/*.yml' \
+            ':(glob).github/actions/**/*.yaml' \
+            ':(glob).github/actions/**/*.yml' \
+          )"
+
+          if [[ -n "$changed_files" ]]; then
+            echo "any_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "any_changed=false" >> "$GITHUB_OUTPUT"
+          fi
 
   gha-checks:
     name: GitHub Actions Feature Branch Workflow Checks
