@@ -1,5 +1,5 @@
 ---
-name: PR Workflow
+name: PR Workflow / GitHub Actions
 
 on:
   pull_request:
