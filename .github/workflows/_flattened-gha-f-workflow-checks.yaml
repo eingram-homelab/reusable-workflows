@@ -1,0 +1,39 @@
+---
+name: GitHub Actions Feature Branch Workflow Checks
+
+on:
+  workflow_call:
+    inputs:
+      yamllint_config:
+        description: 'Path to yamllint config file relative to the repository root'
+        type: string
+        default: ''
+      repository:
+        description: 'Repository containing workflow files to validate'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out. Defaults to the current ref.'
+        type: string
+        default: ''
+      fetch_depth:
+        description: 'Git fetch depth to use during checkout. Use 0 for full history.'
+        type: number
+        default: 0
+
+jobs:
+  check_for_changes:
+    name: Check for changed files
+    uses: ./.github/workflows/_check_for_changes.yaml
+    with:
+      repository: ${{ inputs.repository }}
+      ref: ${{ inputs.ref }}
+
+  validate:
+    name: Run Validation Checks
+    needs: check_for_changes
+    if: needs.check_for_changes.outputs.any_changed == 'true'
+    uses: ./.github/workflows/_gha-validate-workflow.yaml
+    with:
+      changed_files: ${{ needs.check_for_changes.outputs.changed_files }}
+      yamllint_config: ${{ inputs.yamllint_config }}
