@@ -1,0 +1,40 @@
+---
+name: Ansible Lint
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: 'Repository containing Ansible playbooks and roles'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out. Defaults to the PR head branch.'
+        type: string
+        default: ''
+      requirements_file:
+        description: 'Path to the requirements.txt file relative to the repository root'
+        type: string
+        default: ''
+      working_directory:
+        description: 'Working directory for ansible-lint'
+        type: string
+        default: ''
+
+jobs:
+  check_for_changes:
+    name: Check for changed files
+    uses: ./.github/workflows/_check_for_changes.yaml
+    with:
+      repository: ${{ inputs.repository }}
+      ref: ${{ inputs.ref }}
+
+  validate:
+    needs: check_for_changes
+    if: needs.check_for_changes.outputs.any_changed == 'true'
+    name: Validate Ansible Playboooks and Roles
+    uses: ./.github/workflows/_ansible-validate-playbook.yaml
+    with:
+      changed_files: ${{ needs.check_for_changes.outputs.changed_files }}
+      requirements_file: ${{ inputs.requirements_file }}
+      working_directory: ${{ needs.check_for_changes.outputs.dir_names }}
