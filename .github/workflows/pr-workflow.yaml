@@ -11,29 +11,6 @@ permissions:
   pull-requests: read
 
 jobs:
-  changes:
-    name: Check for workflow or action file changes
-    runs-on: arc-runners
-    outputs:
-      workflows: ${{ steps.changed.outputs.any_changed }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
-        with:
-          fetch-depth: 0
-
-      - name: Check for workflow file changes
-        id: changed
-        uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96
-        with:
-          files: |
-            .github/workflows/**/*.yaml
-            .github/workflows/**/*.yml
-            .github/actions/**/*.yaml
-            .github/actions/**/*.yml
-
   gha-checks:
     name: GitHub Actions PR Workflow Checks
-    needs: changes
-    if: needs.changes.outputs.workflows == 'true'
-    uses: ./.github/workflows/_gha-pr-workflow-checks.yaml
+    uses: ./.github/workflows/_flattened-gha-pr-workflow-checks.yaml
