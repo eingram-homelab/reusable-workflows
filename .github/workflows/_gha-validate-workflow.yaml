@@ -37,7 +37,7 @@ jobs:
 
       - name: yaml-lint
         id: yamllint
-        uses: eingram-homelab/reusable-workflows/.github/actions/yamllint
+        uses: eingram-homelab/reusable-workflows/.github/actions/yamllint@yamllint-v0.0.2
         continue-on-error: true
         with:
           file_or_dir: ${{ steps.list_changed_files_yamllint.outputs.final_file_list_yamllint }}
