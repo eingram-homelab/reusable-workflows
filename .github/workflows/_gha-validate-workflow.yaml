@@ -4,15 +4,9 @@ name: Validate Workflow Files
 on:
   workflow_call:
     inputs:
-      paths:
-        description: 'Space-separated list of paths to lint with yamllint'
+      changed_files:
+        description: 'List of changed files'
         type: string
-        default: '.github/workflows/'
-      changed_files_patterns:
-        description: 'Newline-separated glob patterns passed to tj-actions/changed-files'
-        type: string
-        default: |
-          .github/workflows/**
       yamllint_config:
         description: 'Path to yamllint config file relative to the repository root'
         type: string
@@ -24,21 +18,14 @@ jobs:
     runs-on: arc-runners
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           fetch-depth: 0
 
-      - name: Get changed workflow files
-        id: changed
-        uses: tj-actions/changed-files@v47.0.6
-        with:
-          files: ${{ inputs.changed_files_patterns }}
-
       - name: Create list of changed files for yaml-lint (space delimited)
-        if: steps.changed.outputs.any_changed == 'true'
         id: list_changed_files_yamllint
         env:
-          CHANGED_FILES: ${{ steps.changed.outputs.all_changed_files }}
+          CHANGED_FILES: ${{ inputs.changed_files }}
         run: |
           echo "Changed workflow files:"
           final_file_list=""
@@ -51,14 +38,13 @@ jobs:
       - name: yaml-lint
         id: yamllint
         uses: eingram-homelab/reusable-workflows/.github/actions/yamllint@yamllint-v0.0.2
-        if: steps.changed.outputs.any_changed == 'true'
         continue-on-error: true
         with:
           file_or_dir: ${{ steps.list_changed_files_yamllint.outputs.final_file_list_yamllint }}
           config_file: ${{ inputs.yamllint_config || '' }}
 
       - name: yaml-lint Summary
-        if: ${{ always() && steps.changed.outputs.any_changed == 'true' && steps.yamllint.outcome != 'skipped' }}
+        if: ${{ always() && steps.yamllint.outcome != 'skipped' }}
         run: |
           {
             echo "## yaml-lint"
@@ -84,10 +70,9 @@ jobs:
           fi
 
       - name: Create list of changed files for actionlint (comma delimited)
-        if: steps.changed.outputs.any_changed == 'true'
         id: list_changed_files_actionlint
         env:
-          CHANGED_FILES: ${{ steps.changed.outputs.all_changed_files }}
+          CHANGED_FILES: ${{ inputs.changed_files }}
         run: |
           echo "Changed workflow files:"
           final_file_list=""
@@ -99,7 +84,6 @@ jobs:
           echo "final_file_list_actionlint=$final_file_list" >> "$GITHUB_OUTPUT"
 
       - name: actionlint
-        if: steps.changed.outputs.any_changed == 'true'
         id: actionlint  #optional, id required only when outputs are used in the workflow steps later
         uses: raven-actions/actionlint@v2.1.2
         with:
@@ -124,9 +108,8 @@ jobs:
           exit 1
 
       - name: Validate workflow_call inputs have descriptions
-        if: steps.changed.outputs.any_changed == 'true'
         env:
-          CHANGED_FILES: ${{ steps.changed.outputs.all_changed_files }}
+          CHANGED_FILES: ${{ inputs.changed_files }}
         run: |
           failed=0
           for file in $CHANGED_FILES; do
