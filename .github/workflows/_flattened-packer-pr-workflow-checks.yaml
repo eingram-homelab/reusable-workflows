@@ -1,5 +1,5 @@
 ---
-name: Flattened Packer Workflow Checks - Feature Branch
+name: Flattened Packer Workflow Checks - Pull Request
 
 on:
   workflow_call:
@@ -26,8 +26,8 @@ jobs:
     if: |
       needs.check_for_changes.outputs.any_changed == 'true' &&
       contains(needs.check_for_changes.outputs.all_changed_files, '.hcl')
-    name: Check Format of Packer Files
-    uses: ./.github/workflows/_packer-validate.yaml
+    name: Format, Validate, and Init Packer Templates
+    uses: ./.github/workflows/_packer-validate-init.yaml
     with:
       all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
       dir_names: ${{ needs.check_for_changes.outputs.dir_names }}
