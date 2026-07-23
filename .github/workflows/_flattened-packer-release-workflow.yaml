@@ -1,0 +1,46 @@
+---
+name: Flattened Packer Release Workflow
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: 'Repository containing Packer projects'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out. Defaults to the PR head branch.'
+        type: string
+        default: ''
+    secrets:
+      VAULT_TOKEN:
+        description: 'Vault token for accessing secrets'
+        required: true
+        
+jobs:
+  check_for_changes:
+    name: Check for changed files
+    uses: ./.github/workflows/_check_for_changes.yaml
+    with:
+      repository: ${{ inputs.repository }}
+      ref: ${{ inputs.ref }}
+
+  build:
+    needs: check_for_changes
+    if: |
+      needs.check_for_changes.outputs.any_changed == 'true' &&
+      contains(needs.check_for_changes.outputs.all_changed_files, '.hcl')
+    name: Init and Build Packer Templates
+    uses: ./.github/workflows/_packer-build.yaml
+    with:
+      dir_names: ${{ needs.check_for_changes.outputs.dir_names }}
+    secrets:
+      VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+
+  publish_template:
+    needs: build
+    uses: ./.github/workflows/_packer-publish-template.yaml
+    with:
+      TMPL_NAME: ${{ needs.build.outputs.TMPL_NAME }}
+    secrets:
+      VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}

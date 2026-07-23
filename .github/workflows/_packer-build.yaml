@@ -12,7 +12,7 @@ on:
         description: 'Branch or ref to check out'
         type: string
         default: ''
-      directories:
+      dir_names:
         description: 'Space-separated list of packer directories to build. Overrides changed-files detection when provided (e.g. for manual dispatch).'
         type: string
         default: ''
@@ -27,16 +27,15 @@ on:
 jobs:
   build:
     outputs:
-      HAS_DIRS: ${{ steps.dirs.outputs.has_dirs }}
       TMPL_NAME: ${{ steps.set_TMPL_NAME.outputs.TMPL_NAME }}
-    name: Build Packer Templates
+    name: Packer Build
     runs-on: arc-runners
     env:
       VAULT_ADDR: ${{ vars.VAULT_ADDR }}
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref || github.head_ref }}
@@ -44,57 +43,23 @@ jobs:
       - name: Setup Packer
         uses: hashicorp/setup-packer@v3.2.0
 
-      - name: Get changed files
-        id: changed-files
-        if: inputs.directories == ''
-        uses: tj-actions/changed-files@v46.0.5
-        with:
-          files: |
-            **/*.pkr.hcl
-
-      - name: Resolve directories to build
-        id: dirs
-        env:
-          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
-        run: |
-          if [[ -n "${{ inputs.directories }}" ]]; then
-            # Manual dispatch: use provided directories directly
-            dirs="${{ inputs.directories }}"
-          else
-            # Push event: derive unique dirs from changed .pkr.hcl files that still exist.
-            dirs=$(for file in $CHANGED_FILES; do
-              dir=$(dirname "$file")
-              if [[ -d "$dir" ]] && compgen -G "$dir/*.pkr.hcl" > /dev/null; then
-                echo "$dir"
-              fi
-            done | sort -u | tr '\n' ' ')
-          fi
-          echo "dirs=$dirs" >> $GITHUB_OUTPUT
-          if [[ -n "$dirs" ]]; then
-            echo "has_dirs=true" >> $GITHUB_OUTPUT
-          else
-            echo "has_dirs=false" >> $GITHUB_OUTPUT
-          fi
-
       - name: Run packer init
-        if: steps.dirs.outputs.dirs != ''
         env:
-          DIRS: ${{ steps.dirs.outputs.dirs }}
+          DIR_NAMES: ${{ inputs.dir_names }}
         run: |
-          for dir in $DIRS; do
+          for dir in $DIR_NAMES; do
             echo "::notice::Running packer init for $dir"
             packer init "$dir"
           done
 
       - name: Run packer build
-        if: steps.dirs.outputs.dirs != ''
         env:
-          DIRS: ${{ steps.dirs.outputs.dirs }}
+          DIR_NAMES: ${{ inputs.dir_names }}
         run: |
           # xorriso needed for vsphere-iso to build Windows template
           sudo apt-add-repository universe
           sudo apt-get install -y xorriso
-          for dir in $DIRS; do
+          for dir in $DIR_NAMES; do
             echo "::group::Building $dir"
             packer build "$dir"
             if [[ $? -ne 0 ]]; then
@@ -106,22 +71,12 @@ jobs:
           done
 
       - name: Set vars from artifact info
-        if: steps.dirs.outputs.dirs != ''
         env:
-          DIRS: ${{ steps.dirs.outputs.dirs }}
+          DIR_NAMES: ${{ inputs.dir_names }}
         id: set_TMPL_NAME
         run: |
-          for dir in $DIRS; do
+          for dir in $DIR_NAMES; do
             echo "::notice::Setting vars for $dir"
             echo "TMPL_NAME=$(jq -r '.builds[0].artifact_id' "$dir/build-manifest.json")" >> $GITHUB_OUTPUT
           done
 
-  call_publish_template:
-    needs:
-      - build
-    if: needs.build.outputs.HAS_DIRS == 'true'
-    uses: eingram-homelab/reusable-workflows/.github/workflows/_packer-publish-template.yaml@main
-    with:
-      TMPL_NAME: ${{ needs.build.outputs.TMPL_NAME }}
-    secrets:
-      VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
