@@ -1,0 +1,54 @@
+---
+name: Packer Validate and Init Stage
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: 'Repository containing Packer templates'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out'
+        type: string
+        default: ''
+      all_changed_files:
+        description: 'List of all changed files'
+        type: string
+        default: ''
+      dir_names:
+        description: 'List of unique directory names containing changed files'
+        type: string
+        default: ''
+
+jobs:
+  validate_init:
+    name: Validate and Init Packer Templates
+    runs-on: arc-runners
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref || github.head_ref }}
+
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@v3.2.0
+
+      - name: Format Validate and Init Packer
+        env:
+          ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
+          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
+          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+        run: |
+          dirs=$(for file in $ALL_CHANGED_FILES; do if [[ "$file" == *.hcl ]]; then dirname "$file"; fi; done | sort -u)
+          for dir in $dirs; do
+            echo "::notice::=== Processing $dir ==="
+            echo "::notice::Running packer fmt -check for $dir"
+            packer fmt -check "$dir"
+            echo "::notice::Running packer init for $dir"
+            packer init "$dir"
+            echo "::notice::Running packer validate for $dir"
+            packer validate "$dir"
+            echo "::notice::Finished validating and initializing $dir"
+          done
