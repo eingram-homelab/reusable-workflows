@@ -14,3 +14,6 @@ jobs:
   gha-checks:
     name: GitHub Actions PR Workflow Checks
     uses: ./.github/workflows/_flattened-gha-pr-workflow-checks.yaml
+    with:
+      repository: ${{ github.repository }}
+      ref: ${{ github.head_ref || github.ref_name }}
