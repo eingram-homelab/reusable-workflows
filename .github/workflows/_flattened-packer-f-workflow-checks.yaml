@@ -23,7 +23,9 @@ jobs:
 
   validate:
     needs: check_for_changes
-    if: needs.check_for_changes.outputs.any_changed == 'true'
+    if: |
+      needs.check_for_changes.outputs.any_changed == 'true' &&
+      contains(needs.check_for_changes.outputs.all_changed_files, '.hcl')
     name: Validate Packer Templates
     uses: ./.github/workflows/_packer-validate.yaml
     with:

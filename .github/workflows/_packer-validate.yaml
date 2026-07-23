@@ -37,11 +37,11 @@ jobs:
 
       - name: Check Format of Packer files
         env:
-          DIR_NAMES: ${{ inputs.dir_names }}
+          ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
           # VAULT_ADDR: ${{ vars.VAULT_ADDR }}
           # VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
         run: |
-          dirs=$(for dir in $DIR_NAMES; do echo "$dir"; done | sort -u)
+          dirs=$(for file in $ALL_CHANGED_FILES; do if [[ "$file" == *.hcl ]]; then dirname "$file"; fi; done | sort -u)
           for dir in $dirs; do
             echo "::notice::=== Processing $dir ==="
             echo "::notice::Running packer fmt -check for $dir"
