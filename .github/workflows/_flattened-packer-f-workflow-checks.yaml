@@ -21,11 +21,11 @@ jobs:
       repository: ${{ inputs.repository }}
       ref: ${{ inputs.ref }}
 
-  # validate:
-  #   needs: check_for_changes
-  #   if: needs.check_for_changes.outputs.any_changed == 'true'
-  #   name: Validate Packer Templates
-  #   uses: ./.github/workflows/_packer-validate.yaml
-  #   with:
-  #     all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
-  #     dir_names: ${{ needs.check_for_changes.outputs.dir_names }}
+  validate:
+    needs: check_for_changes
+    if: needs.check_for_changes.outputs.any_changed == 'true'
+    name: Validate Packer Templates
+    uses: ./.github/workflows/_packer-validate.yaml
+    with:
+      all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
+      dir_names: ${{ needs.check_for_changes.outputs.dir_names }}

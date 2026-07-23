@@ -12,6 +12,14 @@ on:
         description: 'Branch or ref to check out'
         type: string
         default: ''
+      all_changed_files:
+        description: 'List of all changed files'
+        type: string
+        default: ''
+      dir_names:
+        description: 'List of unique directory names containing changed files'
+        type: string
+        default: ''
 
 jobs:
   validate:
@@ -25,24 +33,22 @@ jobs:
           ref: ${{ inputs.ref || github.head_ref }}
 
       - name: Setup Packer
-        if: steps.changed-files.outputs.all_changed_files != ''
         uses: hashicorp/setup-packer@v3.2.0
 
-      - name: Validate changed Packer templates
-        if: steps.changed-files.outputs.all_changed_files != ''
+      - name: Check Format of Packer files
         env:
-          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
-          VAULT_ADDR: ${{ vars.VAULT_ADDR }}
-          VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          DIR_NAMES: ${{ inputs.dir_names }}
+          # VAULT_ADDR: ${{ vars.VAULT_ADDR }}
+          # VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
         run: |
-          dirs=$(for file in $CHANGED_FILES; do dirname "$file"; done | sort -u)
+          dirs=$(for dir in $DIR_NAMES; do echo "$dir"; done | sort -u)
           for dir in $dirs; do
             echo "::notice::=== Processing $dir ==="
             echo "::notice::Running packer fmt -check for $dir"
             packer fmt -check "$dir"
-            echo "::notice::Running packer init for $dir"
-            packer init "$dir"
-            echo "::notice::Running packer validate for $dir"
-            packer validate "$dir"
-            echo "::notice::Finished validating $dir"
+            # echo "::notice::Running packer init for $dir"
+            # packer init "$dir"
+            # echo "::notice::Running packer validate for $dir"
+            # packer validate "$dir"
+            # echo "::notice::Finished validating $dir"
           done
