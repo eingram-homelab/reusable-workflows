@@ -4,6 +4,14 @@ name: Flattened GitHub Actions Workflow Checks - Pull Request
 on:
   workflow_call:
     inputs:
+      repository:
+        description: 'Repository to check for changed files'
+        type: string
+        default: ''
+      yamllint_config:
+        description: 'Path to yamllint config file relative to the repository root'
+        type: string
+        default: ''
       ref:
         description: 'Branch or ref to check out. Defaults to the current ref.'
         type: string
@@ -30,6 +38,21 @@ on:
         default: true
 
 jobs:
+  check_for_changes:
+    name: Check for changed files
+    uses: ./.github/workflows/_check_for_changes.yaml
+    with:
+      repository: ${{ inputs.repository }}
+      ref: ${{ inputs.ref }}
+
+  validate:
+    name: Run Validation Checks
+    needs: check_for_changes
+    if: needs.check_for_changes.outputs.any_changed == 'true'
+    uses: ./.github/workflows/_gha-validate-workflow.yaml
+    with:
+      all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
+      yamllint_config: ${{ inputs.yamllint_config }}
   sonarqube:
     name: Run SonarQube Scan
     if: inputs.run_sonarqube_scan == true
