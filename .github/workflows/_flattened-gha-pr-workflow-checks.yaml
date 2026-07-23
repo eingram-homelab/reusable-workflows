@@ -53,6 +53,7 @@ jobs:
     with:
       all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
       yamllint_config: ${{ inputs.yamllint_config }}
+
   sonarqube:
     name: Run SonarQube Scan
     if: inputs.run_sonarqube_scan == true
