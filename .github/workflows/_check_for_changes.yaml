@@ -16,9 +16,9 @@ on:
       any_changed:
         description: 'Indicates if any files have changed'
         value: ${{ jobs.check-for-changes.outputs.any_changed }}
-      changed_files:
+      all_changed_files:
         description: 'List of changed files'
-        value: ${{ jobs.check-for-changes.outputs.changed_files }}
+        value: ${{ jobs.check-for-changes.outputs.all_changed_files }}
       dir_names:
         description: 'List of unique directory names containing changed files'
         value: ${{ jobs.check-for-changes.outputs.dir_names }}
@@ -29,7 +29,7 @@ jobs:
     runs-on: arc-runners
     outputs:
       any_changed: ${{ steps.check-changes.outputs.any_changed }}
-      changed_files: ${{ steps.check-changes.outputs.all_changed_files }}
+      all_changed_files: ${{ steps.check-changes.outputs.all_changed_files }}
       dir_names: ${{ steps.check-changes.outputs.dir_names }}
     steps:
       - name: Checkout code
@@ -40,7 +40,11 @@ jobs:
       - name: Check for changed files
         id: check-changes
         uses: step-security/changed-files@2e07db73e5ccdb319b9a6c7766bd46d39d304bad
-        with:
-          files: |
-            .github/workflows/**
-            .github/actions/**
+
+      - name: List all changed files
+        env:
+          ALL_CHANGED_FILES: ${{ steps.check-changes.outputs.all_changed_files }}
+        run: |
+          for file in ${ALL_CHANGED_FILES}; do
+            echo "$file was changed"
+          done

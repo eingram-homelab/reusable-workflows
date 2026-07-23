@@ -1,0 +1,31 @@
+---
+name: Flattened Packer Workflow Checks - Feature Branch
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: 'Repository containing Packer projects'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out. Defaults to the PR head branch.'
+        type: string
+        default: ''
+        
+jobs:
+  check_for_changes:
+    name: Check for changed files
+    uses: ./.github/workflows/_check_for_changes.yaml
+    with:
+      repository: ${{ inputs.repository }}
+      ref: ${{ inputs.ref }}
+
+  # validate:
+  #   needs: check_for_changes
+  #   if: needs.check_for_changes.outputs.any_changed == 'true'
+  #   name: Validate Packer Templates
+  #   uses: ./.github/workflows/_packer-validate.yaml
+  #   with:
+  #     all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
+  #     dir_names: ${{ needs.check_for_changes.outputs.dir_names }}
