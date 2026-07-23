@@ -4,7 +4,7 @@ name: Validate Workflow Files
 on:
   workflow_call:
     inputs:
-      changed_files:
+      all_changed_files:
         description: 'List of changed files'
         type: string
       yamllint_config:
@@ -25,7 +25,7 @@ jobs:
       - name: Create list of changed files for yaml-lint (space delimited)
         id: list_changed_files_yamllint
         env:
-          CHANGED_FILES: ${{ inputs.changed_files }}
+          CHANGED_FILES: ${{ inputs.all_changed_files }}
         run: |
           echo "Changed workflow files:"
           final_file_list=""
@@ -72,7 +72,7 @@ jobs:
       - name: Create list of changed files for actionlint (comma delimited)
         id: list_changed_files_actionlint
         env:
-          CHANGED_FILES: ${{ inputs.changed_files }}
+          CHANGED_FILES: ${{ inputs.all_changed_files }}
         run: |
           echo "Changed workflow files:"
           final_file_list=""
@@ -85,7 +85,7 @@ jobs:
 
       - name: actionlint
         id: actionlint  #optional, id required only when outputs are used in the workflow steps later
-        uses: raven-actions/actionlint@v2.1.2
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7
         with:
           matcher: false  # optional
           cache: false  # optional
@@ -97,6 +97,7 @@ jobs:
         if: ${{ steps.actionlint.outputs.exit-code != 0 }}  # example usage, do echo only when actionlint action failed
         run: |
           {
+            echo "## actionlint"
             echo "Used actionlint version ${{ steps.actionlint.outputs.version-semver }}"
             echo "Used actionlint release ${{ steps.actionlint.outputs.version-tag }}"
             echo "actionlint ended with ${{ steps.actionlint.outputs.exit-code }} exit code"
@@ -109,7 +110,7 @@ jobs:
 
       - name: Validate workflow_call inputs have descriptions
         env:
-          CHANGED_FILES: ${{ inputs.changed_files }}
+          CHANGED_FILES: ${{ inputs.all_changed_files }}
         run: |
           failed=0
           for file in $CHANGED_FILES; do
