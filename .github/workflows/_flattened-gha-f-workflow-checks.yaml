@@ -35,5 +35,5 @@ jobs:
     if: needs.check_for_changes.outputs.any_changed == 'true'
     uses: ./.github/workflows/_gha-validate-workflow.yaml
     with:
-      changed_files: ${{ needs.check_for_changes.outputs.changed_files }}
+      all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
       yamllint_config: ${{ inputs.yamllint_config }}
