@@ -86,6 +86,7 @@ jobs:
       - name: actionlint
         id: actionlint  #optional, id required only when outputs are used in the workflow steps later
         uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7
+        with:
           matcher: false  # optional
           cache: false  # optional
           fail-on-error: false  # optional
