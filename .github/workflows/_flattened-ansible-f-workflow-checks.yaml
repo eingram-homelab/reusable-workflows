@@ -1,5 +1,5 @@
 ---
-name: Ansible Lint
+name: Flattened Ansible Workflow Checks - Feature Branch
 
 on:
   workflow_call:
