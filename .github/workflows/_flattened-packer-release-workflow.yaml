@@ -16,7 +16,7 @@ on:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
         required: true
-        
+
 jobs:
   check_for_changes:
     name: Check for changed files

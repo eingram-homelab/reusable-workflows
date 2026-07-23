@@ -79,4 +79,3 @@ jobs:
             echo "::notice::Setting vars for $dir"
             echo "TMPL_NAME=$(jq -r '.builds[0].artifact_id' "$dir/build-manifest.json")" >> $GITHUB_OUTPUT
           done
-
