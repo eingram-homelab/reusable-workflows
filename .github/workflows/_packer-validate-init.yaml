@@ -20,6 +20,10 @@ on:
         description: 'List of unique directory names containing changed files'
         type: string
         default: ''
+    secrets:
+      VAULT_TOKEN:
+        description: 'Vault token for accessing secrets'
+        required: true
 
 jobs:
   validate_init:

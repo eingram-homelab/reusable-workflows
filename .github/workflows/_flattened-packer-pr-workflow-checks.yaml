@@ -12,6 +12,10 @@ on:
         description: 'Branch or ref to check out. Defaults to the PR head branch.'
         type: string
         default: ''
+    secrets:
+      VAULT_TOKEN:
+        description: 'Vault token for accessing secrets'
+        required: true
         
 jobs:
   check_for_changes:
@@ -31,3 +35,5 @@ jobs:
     with:
       all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
       dir_names: ${{ needs.check_for_changes.outputs.dir_names }}
+    secrets:
+      VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
