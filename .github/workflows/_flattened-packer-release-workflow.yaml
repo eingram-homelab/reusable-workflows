@@ -36,6 +36,7 @@ jobs:
       dir_names: ${{ needs.check_for_changes.outputs.dir_names }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+      GCP_STORAGE: ${{ secrets.GCP_STORAGE }}
 
   publish_template:
     needs: build
