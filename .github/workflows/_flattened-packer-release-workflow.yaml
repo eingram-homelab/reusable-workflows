@@ -34,7 +34,7 @@ jobs:
     if: |
       needs.check_for_changes.outputs.any_changed == 'true' &&
       contains(needs.check_for_changes.outputs.all_changed_files, '.hcl') &&
-      inputs.skip_build == 'false'
+      inputs.skip_build != 'true'
     name: Init and Build Packer Templates
     uses: ./.github/workflows/_packer-build.yaml
     with:
