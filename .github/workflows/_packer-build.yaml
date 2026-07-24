@@ -12,8 +12,8 @@ on:
         description: 'Branch or ref to check out'
         type: string
         default: ''
-      all_changed_files:
-        description: 'Space-separated list of packer directories to build. Overrides changed-files detection when provided (e.g. for manual dispatch).'
+      all_changed_dirs:
+        description: 'Space-separated list of unique directory names containing changed files. Overrides changed-files detection when provided (e.g. for manual dispatch).'
         type: string
         default: ''
     secrets:
@@ -46,21 +46,21 @@ jobs:
 
       - name: Run packer init
         env:
-          ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
+          ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
         run: |
-          for dir in $ALL_CHANGED_FILES; do
+          for dir in $ALL_CHANGED_DIRS; do
             echo "::notice::Running packer init for $dir"
             packer init "$dir"
           done
 
       - name: Run packer build
         env:
-          ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
+          ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
         run: |
           # xorriso needed for vsphere-iso to build Windows template
           sudo apt-add-repository universe
           sudo apt-get install -y xorriso
-          for dir in $ALL_CHANGED_FILES; do
+          for dir in $ALL_CHANGED_DIRS; do
             echo "::group::Building $dir"
             if ! packer build "$dir"; then
               echo "::error::Packer build failed for $dir"
@@ -72,10 +72,10 @@ jobs:
 
       - name: Set vars from artifact info
         env:
-          ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
+          ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
         id: set_TMPL_NAME
         run: |
-          for dir in $ALL_CHANGED_FILES; do
+          for dir in $ALL_CHANGED_DIRS; do
             echo "::notice::Setting vars for $dir"
             echo "TMPL_NAME=$(jq -r '.builds[0].artifact_id' "$dir/build-manifest.json")" >> "$GITHUB_OUTPUT"
           done
