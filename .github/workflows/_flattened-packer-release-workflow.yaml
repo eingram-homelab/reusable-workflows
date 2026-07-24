@@ -16,6 +16,9 @@ on:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
         required: true
+      # GCP_STORAGE:
+      #   description: 'Base64-encoded GCP service account key for Terraform template verification'
+      #   required: true
 
 jobs:
   check_for_changes:
@@ -36,7 +39,7 @@ jobs:
       dir_names: ${{ needs.check_for_changes.outputs.dir_names }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-      GCP_STORAGE: ${{ secrets.GCP_STORAGE }}
+      # GCP_STORAGE: ${{ secrets.GCP_STORAGE }}
 
   publish_template:
     needs: build
