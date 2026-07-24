@@ -12,10 +12,6 @@ on:
         description: 'Branch or ref to check out. Defaults to the current ref.'
         type: string
         default: ''
-      dir_names:
-        description: 'Option to output unique dir names instead of files'
-        type: boolean
-        default: false
     outputs:
       any_changed:
         description: 'Indicates if any files have changed'
@@ -23,15 +19,18 @@ on:
       all_changed_files:
         description: 'List of changed files'
         value: ${{ jobs.check-for-changes.outputs.all_changed_files }}
+      all_changed_dirs:
+        description: 'List of unique directory names containing changed files'
+        value: ${{ jobs.check-for-changes.outputs.all_changed_dirs }}
 
 jobs:
   check-for-changes:
-    name: Check for changed files
+    name: Check for changed files and dirs
     runs-on: arc-runners
     outputs:
-      any_changed: ${{ steps.check-changes.outputs.any_changed }}
-      all_changed_files: ${{ steps.check-changes.outputs.all_changed_files }}
-      dir_names: ${{ steps.check-changes.outputs.dir_names }}
+      any_changed: ${{ steps.check-file-changes.outputs.any_changed }}
+      all_changed_files: ${{ steps.check-file-changes.outputs.all_changed_files }}
+      all_changed_dirs: ${{ steps.check-dir-changes.outputs.all_changed_files }}
     steps:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -41,16 +40,29 @@ jobs:
           fetch-depth: 0
 
       - name: Check for changed files
-        id: check-changes
+        id: check-file-changes
         uses: step-security/changed-files@2e07db73e5ccdb319b9a6c7766bd46d39d304bad
         with:
-          dir_names: ${{ inputs.dir_names }}
+          dir_names: false
 
       - name: List all changed files
         env:
-          ALL_CHANGED_FILES: ${{ steps.check-changes.outputs.all_changed_files }}
+          ALL_CHANGED_FILES: ${{ steps.check-file-changes.outputs.all_changed_files }}
         run: |
           for file in ${ALL_CHANGED_FILES}; do
             echo "$file was changed"
           done
 
+      - name: Check for changed dirs
+        id: check-dir-changes
+        uses: step-security/changed-files@2e07db73e5ccdb319b9a6c7766bd46d39d304bad
+        with:
+          dir_names: true
+
+      - name: List all changed directories
+        env:
+          DIR_NAMES: ${{ steps.check-dir-changes.outputs.all_changed_files }}
+        run: |
+          for dir in ${DIR_NAMES}; do
+            echo "$dir was changed"
+          done

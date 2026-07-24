@@ -12,10 +12,6 @@ on:
         description: 'Branch or ref to check out. Defaults to the PR head branch.'
         type: string
         default: ''
-      dir_names:
-        description: 'Option to output unique dir names instead of files'
-        type: boolean
-        default: true
     secrets:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
@@ -28,7 +24,6 @@ jobs:
     with:
       repository: ${{ inputs.repository }}
       ref: ${{ inputs.ref }}
-      dir_names: ${{ inputs.dir_names }}
 
   validate:
     needs: check_for_changes
@@ -38,6 +33,6 @@ jobs:
     name: Format, Validate, and Init Packer Templates
     uses: ./.github/workflows/_packer-validate-init.yaml
     with:
-      all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
+      all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}

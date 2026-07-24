@@ -12,11 +12,7 @@ on:
         description: 'Branch or ref to check out'
         type: string
         default: ''
-      all_changed_files:
-        description: 'List of all changed files'
-        type: string
-        default: ''
-      dir_names:
+      all_changed_dirs:
         description: 'List of unique directory names containing changed files'
         type: string
         default: ''
@@ -37,12 +33,9 @@ jobs:
 
       - name: Check Format of Packer files
         env:
-          ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
-          # VAULT_ADDR: ${{ vars.VAULT_ADDR }}
-          # VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+          ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
         run: |
-          dirs=$(for file in $ALL_CHANGED_FILES; do if [[ "$file" == *.hcl ]]; then dirname "$file"; fi; done | sort -u)
-          for dir in $dirs; do
+          for dir in $ALL_CHANGED_DIRS; do
             echo "::notice::=== Processing $dir ==="
             echo "::notice::Running packer fmt -check for $dir"
             packer fmt -check "$dir"
