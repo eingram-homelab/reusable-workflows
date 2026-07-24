@@ -12,6 +12,10 @@ on:
         description: 'Branch or ref to check out. Defaults to the PR head branch.'
         type: string
         default: ''
+      skip_build:
+        description: 'Skip the Packer build step. Defaults to false.'
+        type: boolean
+        default: false
     secrets:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
@@ -29,7 +33,8 @@ jobs:
     needs: check_for_changes
     if: |
       needs.check_for_changes.outputs.any_changed == 'true' &&
-      contains(needs.check_for_changes.outputs.all_changed_files, '.hcl')
+      contains(needs.check_for_changes.outputs.all_changed_files, '.hcl') &&
+      inputs.skip_build == 'false'
     name: Init and Build Packer Templates
     uses: ./.github/workflows/_packer-build.yaml
     with:
