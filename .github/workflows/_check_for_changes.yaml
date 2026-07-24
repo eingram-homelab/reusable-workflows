@@ -69,3 +69,11 @@ jobs:
           for file in ${ALL_CHANGED_FILES}; do
             echo "$file was changed"
           done
+      
+      - name: List unique directory names containing changed files
+        id: list-dir-names
+        env:
+          DIR_NAMES: ${{ steps.check-changes.outputs.dir_names }}
+        run: |
+          dir_names=$(for dir in $DIR_NAMES; do dirname "$dir"; done | sort -u)
+          echo "dir_names=$dir_names"
