@@ -36,6 +36,10 @@ on:
         description: 'Whether to run the SonarQube scan after validation checks'
         type: boolean
         default: true
+    secrets:
+      sonar_token:
+        description: 'SonarQube token for code analysis'
+        required: true
 
 jobs:
   check_for_changes:
