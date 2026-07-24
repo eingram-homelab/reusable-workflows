@@ -12,6 +12,10 @@ on:
         description: 'Branch or ref to check out. Defaults to the current ref.'
         type: string
         default: ''
+      dir_names:
+        description: 'Option to output unique dir names instead of files'
+        type: boolean
+        default: false
     outputs:
       any_changed:
         description: 'Indicates if any files have changed'
@@ -19,9 +23,6 @@ on:
       all_changed_files:
         description: 'List of changed files'
         value: ${{ jobs.check-for-changes.outputs.all_changed_files }}
-      dir_names:
-        description: 'List of unique directory names containing changed files'
-        value: ${{ jobs.check-for-changes.outputs.dir_names }}
 
 jobs:
   check-for-changes:
@@ -39,28 +40,11 @@ jobs:
           ref: ${{ inputs.ref || github.ref }}
           fetch-depth: 0
 
-      # - name: Determine branch merge-base
-      #   id: merge-base
-      #   env:
-      #     DEFAULT_BRANCH: ${{ github.event.repository.default_branch || 'main' }}
-      #   run: |
-      #     git fetch --no-tags origin "$DEFAULT_BRANCH"
-      #     base_sha="$(git merge-base HEAD "origin/$DEFAULT_BRANCH")"
-
-      #     if [[ -z "$base_sha" ]]; then
-      #       echo "Unable to determine merge-base with origin/$DEFAULT_BRANCH" >&2
-      #       exit 1
-      #     fi
-
-      #     echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
-
       - name: Check for changed files
         id: check-changes
         uses: step-security/changed-files@2e07db73e5ccdb319b9a6c7766bd46d39d304bad
-        # with:
-        #   base_sha: ${{ steps.merge-base.outputs.base_sha }}
-        #   sha: ${{ github.sha }}
-        #   since_last_remote_commit: false
+        with:
+          dir_names: ${{ inputs.dir_names }}
 
       - name: List all changed files
         env:
@@ -69,11 +53,4 @@ jobs:
           for file in ${ALL_CHANGED_FILES}; do
             echo "$file was changed"
           done
-      
-      - name: List unique directory names containing changed files
-        id: list-dir-names
-        env:
-          DIR_NAMES: ${{ steps.check-changes.outputs.dir_names }}
-        run: |
-          dir_names=$(for dir in $DIR_NAMES; do dirname "$dir"; done | sort -u)
-          echo "dir_names=$dir_names"
+

@@ -16,10 +16,6 @@ on:
         description: 'List of all changed files'
         type: string
         default: ''
-      dir_names:
-        description: 'List of unique directory names containing changed files'
-        type: string
-        default: ''
     secrets:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
