@@ -1,5 +1,5 @@
 ---
-name: Validate Terraform
+name: Terraform Validate Workflow
 on:
   workflow_call:
     inputs:
@@ -11,133 +11,45 @@ on:
         description: 'Branch or ref to check out. Defaults to the PR head branch.'
         type: string
         default: ''
+      all_changed_dirs:
+        description: 'List of unique directory names containing changed files'
+        type: string
+        default: ''
 
 jobs:
-  validate:
-    name: Validate Terraform Project
+  tflint:
     runs-on: arc-runners
-    outputs:
-      project_name: ${{ steps.collect-artifacts.outputs.project_name }}
-      project_type: ${{ steps.check-projects.outputs.project_type }}
-      ansible_limit: ${{ steps.collect-artifacts.outputs.ansible_limit }}
-      ansible_user: ${{ steps.collect-artifacts.outputs.ansible_user }}
-      cluster_name: ${{ steps.collect-artifacts.outputs.cluster_name }}
-      cluster_lb_ip: ${{ steps.collect-artifacts.outputs.cluster_lb_ip }}
-      deploy_tag: ${{ steps.tag-deployment.outputs.tag }}
-    env:
-      VAULT_ADDR: ${{ vars.VAULT_ADDR }}
-      VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-      GCP_STORAGE: ${{ secrets.GCP_STORAGE }}
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        name: Checkout source code
         with:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref || github.head_ref }}
+          fetch-depth: 0
 
-      - name: Get changed files
-        id: changed-files
-        env:
-          CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
-        uses: tj-actions/changed-files@v46.0.5
+      - uses: terraform-linters/setup-tflint@6e1e0642c0289bd619021bf6b34e3c08ed1e005a
+        name: Setup TFLint
         with:
-          files: |
-            projects/**/**/main.tf
+          tflint_version: v0.64.0
+          cache: true
 
-      - name: Ensure only one project is changed
-        id: check-projects
+      - name: Show version
+        run: tflint --version
+
+      - name: Init TFLint
+        run: tflint --init
+        env:
+          # https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/plugins.md#avoiding-rate-limiting
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run TFLint
+        env:
+          ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
         run: |
-          if [ "$CHANGED_FILES" != "" ]; then
-            echo "Changed files: $CHANGED_FILES"
-            projects=$(echo "$CHANGED_FILES" | grep -oE '.+\/')
-            echo ${projects[@]}
-            unique_project=$(echo "$projects" | sort -u)
-            echo $unique_project
-            type=$(echo "$unique_project" | cut -d'/' -f2)
-            echo "Project type: $type"
-
-
-            #################
-            # CREATE OUTPUT #
-            #################
-            echo project_type=$type >> $GITHUB_OUTPUT
-
-            if [ $(echo "$unique_project" | wc -l) -gt 1 ]; then
-              echo "Error: More than one project changed. Please limit changes to one project at a time."
-              exit 1
+          for dir in $ALL_CHANGED_DIRS; do
+            if ! find "$dir" -maxdepth 1 -type f -name '*.tf' | grep -q .; then
+              echo "::notice::Skipping $dir (no .tf files found)"
+              continue
             fi
-
-            #################
-            # CREATE OUTPUT #
-            #################
-            echo "project=$unique_project" >> $GITHUB_OUTPUT
-
-          fi
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: 1.11.3
-
-      - name: Create json cred file
-        id: create-cred-file
-        env:
-          GCP_STORAGE: ${{ secrets.GCP_STORAGE }}
-        run: |
-          echo $GCP_STORAGE | base64 --decode > /tmp/cred.json
-
-      - name: Generate backend configuration
-        id: generate-backend
-        env:
-          PROJECT: ${{ steps.check-projects.outputs.project }}
-        run: |
-          dir=$PROJECT
-          sudo rm -f "$dir/backend.tf"
-          echo "Generated backend.tf for $dir"
-          cat > "$dir/backend.tf" <<EOF
-          terraform {
-            backend "gcs" {
-              bucket      = "yc-srv1-tfstate"
-              credentials = "/tmp/cred.json"
-              prefix      = "terraform/state/$(echo "$dir" | cut -d'/' -f3)"
-            }
-          }
-          EOF
-
-      - name: Run terraform init
-        env:
-          PROJECT: ${{ steps.check-projects.outputs.project }}
-        run: |
-          dir=$PROJECT
-          echo "Running terraform init for $dir"
-          cd "$dir"
-          terraform init
-
-      - name: Run terraform validate
-        env:
-          PROJECT: ${{ steps.check-projects.outputs.project }}
-        run: |
-          dir=$PROJECT
-          echo "Running terraform validate for $dir"
-          cd "$dir"
-          terraform validate
-
-      - name: Delete json cred file
-        if: always()
-        run: |
-          if [ -f /tmp/cred.json ]; then
-            rm -f /tmp/cred.json
-          fi
-
-      - name: Delete terraform backend config
-        if: always()
-        env:
-          PROJECT: ${{ steps.check-projects.outputs.project }}
-        run: |
-          dir=$PROJECT
-          sudo rm -f "$dir/backend.tf"
+            tflint --chdir="$dir"
+          done
