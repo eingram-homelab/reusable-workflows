@@ -12,7 +12,7 @@ permissions:
 jobs:
   gha-checks:
     name: GitHub Actions Feature Branch Workflow Checks
-    uses: ./.github/workflows/_flattened-gha-f-workflow-checks.yaml
+    uses: ./.github/workflows/_flattened-gha-f-workflow.yaml
     with:
       repository: ${{ github.repository }}
       ref: ${{ github.head_ref || github.ref_name }}
