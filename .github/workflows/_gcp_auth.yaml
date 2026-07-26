@@ -12,6 +12,13 @@ on:
         description: 'Branch or ref to check out. Defaults to the PR head branch.'
         type: string
         default: ''
+    outputs:
+      auth_token:
+        description: 'Google Cloud authentication token'
+        value: ${{ jobs.job_id.outputs.auth_token }}
+      project_id:
+        description: 'Google Cloud project ID'
+        value: ${{ jobs.job_id.outputs.project_id }}
 
 jobs:
   job_id:
