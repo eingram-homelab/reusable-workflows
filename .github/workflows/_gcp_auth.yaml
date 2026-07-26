@@ -1,0 +1,48 @@
+---
+name: Authentication to GCP for GitHub Actions
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: 'Repository containing Terraform projects'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out. Defaults to the PR head branch.'
+        type: string
+        default: ''
+    outputs:
+      auth_token:
+        description: 'Google Cloud authentication token'
+        value: ${{ jobs.job_id.outputs.auth_token }}
+      project_id:
+        description: 'Google Cloud project ID'
+        value: ${{ jobs.job_id.outputs.project_id }}
+
+jobs:
+  job_id:
+    name: Get Google Cloud id_token
+    runs-on: arc-runners
+
+    # Add "id-token" with the intended permissions.
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    outputs:
+      auth_token: ${{ steps.get-auth-token.outputs.auth_token }}
+      project_id: ${{ steps.get-auth-token.outputs.project_id }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref || github.head_ref }}
+
+      - name: Get Google Cloud auth_token
+        id: get-auth-token
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          # project_id: ${{ vars.GCP_PROJECT_ID }}

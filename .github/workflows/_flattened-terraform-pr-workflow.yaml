@@ -25,26 +25,26 @@ jobs:
       repository: ${{ inputs.repository }}
       ref: ${{ inputs.ref }}
 
-  validate:
+  get-auth-token:
     needs: check_for_changes
     if: |
       needs.check_for_changes.outputs.any_changed == 'true' &&
       contains(needs.check_for_changes.outputs.all_changed_files, '.tf')
-    name: Format, Validate, and Init Terraform Projects
-    uses: ./.github/workflows/_terraform-validate-init.yaml
+    name: Get Google Cloud id_token
+    uses: ./.github/workflows/_gcp_auth.yaml
     with:
-      all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
-    secrets:
-      VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+      repository: ${{ inputs.repository }}
+      ref: ${{ inputs.ref }}
 
-  plan:
-    needs: validate
-    if: |
-      needs.check_for_changes.outputs.any_changed == 'true' &&
-      contains(needs.check_for_changes.outputs.all_changed_files, '.tf')
-    name: Plan Terraform Projects
-    uses: ./.github/workflows/_terraform-plan.yaml
+  init_plan:
+    needs: 
+      - get-auth-token
+      - check_for_changes
+    name: Init and Plan Terraform Projects
+    uses: ./.github/workflows/_terraform-init-plan.yaml
     with:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
+      auth_token: ${{ needs.get-auth-token.outputs.auth_token }}
+      project_id: ${{ needs.get-auth-token.outputs.project_id }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
