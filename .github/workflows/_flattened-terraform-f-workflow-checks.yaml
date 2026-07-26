@@ -22,7 +22,7 @@ on:
         type: string
         required: true
         default: 'proj-yc-srv1'
-        
+
 jobs:
   check_for_changes:
     name: Check for changed files
@@ -42,4 +42,3 @@ jobs:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
       gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
       gcp_project_id: ${{ inputs.gcp_project_id }}
-
