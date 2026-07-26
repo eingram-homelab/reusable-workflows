@@ -1,0 +1,45 @@
+---
+name: Flattened Terraform Workflow Checks - Feature Branch
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: 'Repository containing Terraform projects'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out. Defaults to the PR head branch.'
+        type: string
+        default: ''
+      gcp_workload_identity_provider:
+        description: 'Full resource name of the Google Cloud Workload Identity Provider'
+        type: string
+        required: true
+        default: 'projects/proj-yc-srv1/locations/global/workloadIdentityPools/github-actions-wip/providers/github-actions-provider'
+      gcp_project_id:
+        description: 'Google Cloud project ID'
+        type: string
+        required: true
+        default: 'proj-yc-srv1'
+        
+jobs:
+  check_for_changes:
+    name: Check for changed files
+    uses: ./.github/workflows/_check_for_changes.yaml
+    with:
+      repository: ${{ inputs.repository }}
+      ref: ${{ inputs.ref }}
+
+  validate:
+    needs: check_for_changes
+    if: |
+      needs.check_for_changes.outputs.any_changed == 'true' &&
+      contains(needs.check_for_changes.outputs.all_changed_files, '.tf')
+    name: Check Format of Terraform Files
+    uses: ./.github/workflows/_terraform-validate.yaml
+    with:
+      all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
+      gcp_workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
+      gcp_project_id: ${{ inputs.gcp_project_id }}
+
