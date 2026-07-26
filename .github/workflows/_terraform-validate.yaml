@@ -1,11 +1,10 @@
 ---
-name: Validate Terraform
-
+name: Terraform Validate Workflow
 on:
   workflow_call:
     inputs:
       repository:
-        description: 'Repository containing Terraform code to validate'
+        description: 'Repository containing Terraform code to lint'
         type: string
         default: ''
       ref:
@@ -13,74 +12,44 @@ on:
         type: string
         default: ''
       all_changed_dirs:
-        description: 'Space-separated list of unique directory names containing changed files'
+        description: 'List of unique directory names containing changed files'
         type: string
         default: ''
-      gcp_workload_identity_provider:
-        description: 'Full resource name of the Google Cloud Workload Identity Provider'
-        type: string
-        required: true
-      gcp_project_id:
-        description: 'Google Cloud project ID'
-        type: string
-        required: true
 
 jobs:
-  validate:
-    name: Check Terraform Project Format
+  tflint:
     runs-on: arc-runners
-    permissions:
-      contents: read
-      id-token: write
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        name: Checkout source code
         with:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref || github.head_ref }}
+          fetch-depth: 0
 
-      # - name: Setup Node.js
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: '20'
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
+      - uses: terraform-linters/setup-tflint@6e1e0642c0289bd619021bf6b34e3c08ed1e005a
+        name: Setup TFLint
         with:
-          terraform_version: 1.11.3
+          tflint_version: v0.64.0
+          cache: true
 
-      - name: Authenticate to Google Cloud
-        id: gcp-auth
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
-        with:
-          project_id: ${{ inputs.gcp_project_id }}
-          workload_identity_provider: ${{ inputs.gcp_workload_identity_provider }}
+      - name: Show version
+        run: tflint --version
 
-      - name: Check Format of Terraform files
+      - name: Init TFLint
+        run: tflint --init
+        env:
+          # https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/plugins.md#avoiding-rate-limiting
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Run TFLint
         env:
           ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
         run: |
           for dir in $ALL_CHANGED_DIRS; do
-            echo "::notice::=== Processing $dir ==="
-            echo "::notice::Running terraform fmt -check for $dir"
-            terraform fmt -check "$dir"
-            echo "::notice::Finished checking format for $dir"
+            if ! find "$dir" -maxdepth 1 -type f -name '*.tf' | grep -q .; then
+              echo "::notice::Skipping $dir (no .tf files found)"
+              continue
+            fi
+            tflint --chdir="$dir"
           done
-
-      # - name: Run terraform init
-      #   env:
-      #     PROJECT: ${{ steps.check-projects.outputs.project }}
-      #   run: |
-      #     dir=$PROJECT
-      #     echo "Running terraform init for $dir"
-      #     cd "$dir"
-      #     terraform init
-
-      # - name: Run terraform validate
-      #   env:
-      #     PROJECT: ${{ steps.check-projects.outputs.project }}
-      #   run: |
-      #     dir=$PROJECT
-      #     echo "Running terraform validate for $dir"
-      #     cd "$dir"
-      #     terraform validate
