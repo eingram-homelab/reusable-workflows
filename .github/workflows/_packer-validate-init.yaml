@@ -44,6 +44,10 @@ jobs:
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
         run: |
           for dir in $ALL_CHANGED_DIRS; do
+            if ! find "$dir" -maxdepth 1 -type f -name '*.hcl' | grep -q .; then
+              echo "::notice::Skipping $dir (no .hcl files found)"
+              continue
+            fi
             echo "::notice::=== Processing $dir ==="
             echo "::notice::Running packer fmt -check for $dir"
             packer fmt -check "$dir"
