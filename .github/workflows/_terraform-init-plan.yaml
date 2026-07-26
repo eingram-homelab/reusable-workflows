@@ -54,6 +54,8 @@ jobs:
       - name: Run terraform init
         env:
           ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
+          GOOGLE_CLOUD_AUTH_TOKEN: ${{ inputs.auth_token }}
+          GOOGLE_CLOUD_PROJECT_ID: ${{ inputs.project_id }}
         run: |
           for dir in $ALL_CHANGED_DIRS; do
             if ! find "$dir" -maxdepth 1 -type f -name '*.tf' | grep -q .; then
