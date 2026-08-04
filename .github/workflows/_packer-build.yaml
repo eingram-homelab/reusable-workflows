@@ -51,6 +51,10 @@ jobs:
           ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
         run: |
           for dir in $ALL_CHANGED_DIRS; do
+            if ! find "$dir" -maxdepth 1 -type f -name '*.hcl' | grep -q .; then
+              echo "::notice::Skipping $dir (no .hcl files found)"
+              continue
+            fi
             echo "::notice::Running packer init for $dir"
             packer init "$dir"
           done
