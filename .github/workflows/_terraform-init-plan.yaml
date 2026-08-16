@@ -113,7 +113,6 @@ jobs:
             cd "$(dirname "$file")/../../"
             safe_name="$(basename "$(dirname "$file")" | tr '/' '_')_$(basename "$file" | tr '.' '_')"
             terraform plan \
-              -backend-config="prefix=terraform/state/$(dirname "$file")" \
               -var-file="./environments/$(basename "$(dirname "$file")")/$(basename "$file")" -input=false \
               -out="/tmp/tfplans/${safe_name}.tfplan"
             terraform show -no-color "/tmp/tfplans/${safe_name}.tfplan" > "/tmp/tfplans/${safe_name}.txt"
