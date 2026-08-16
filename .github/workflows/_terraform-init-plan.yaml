@@ -11,8 +11,12 @@ on:
         description: 'Branch or ref to check out. Defaults to the PR head branch.'
         type: string
         default: ''
-      all_changed_dirs:
-        description: 'List of all changed directories'
+      # all_changed_dirs:
+      #   description: 'List of all changed directories'
+      #   type: string
+      #   default: ''
+      all_changed_files:
+        description: 'List of all changed files'
         type: string
         default: ''
       auth_token:
@@ -60,52 +64,47 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e
         with:
-          terraform_version: ">= 1.14.6"
+          terraform_version: ">= 1.15.0"
 
       - name: Run terraform init
         env:
-          ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
+          ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
         run: |
-          for dir in $ALL_CHANGED_DIRS; do
-            if ! find "$dir" -maxdepth 1 -type f -name '*.tf' | grep -q .; then
-              echo "::notice::Skipping $dir (no .tf files found)"
-              continue
-            fi
-            echo "Running terraform init for $dir"
-            cd "$dir"
-            terraform init
+          for file in $ALL_CHANGED_FILES; do
+            echo "Running terraform init for ${file}"
+            cd "$(dirname "$file")/../../"
+            terraform init \
+              -backend-config="prefix=terraform/state/$(dirname "$file")" \
+              -var-file="$(dirname "$file")/terraform.tfvars" -input=false
             cd -
           done
 
       - name: Run terraform validate
         env:
-          ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
+          ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
         run: |
-          for dir in $ALL_CHANGED_DIRS; do
-            if ! find "$dir" -maxdepth 1 -type f -name '*.tf' | grep -q .; then
-              echo "::notice::Skipping $dir (no .tf files found)"
-              continue
-            fi
-            echo "Running terraform validate for $dir"
-            cd "$dir"
-            terraform validate
+          for file in $ALL_CHANGED_FILES; do
+            echo "Running terraform validate for ${file}"
+            cd "$(dirname "$file")/../../"
+            terraform validate \
+              -backend-config="prefix=terraform/state/$(dirname "$file")" \
+              -var-file="$(dirname "$file")/terraform.tfvars" -input=false
             cd -
           done
 
       - name: Run terraform plan
         env:
-          ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
+          ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
         run: |
           mkdir -p /tmp/tfplans
-          for dir in $ALL_CHANGED_DIRS; do
-            if ! find "$dir" -maxdepth 1 -type f -name '*.tf' | grep -q .; then
-              echo "::notice::Skipping $dir (no .tf files found)"
-              continue
-            fi
-            echo "Running terraform plan for $dir"
-            cd "$dir"
-            safe_name="$(echo "$dir" | tr '/ ' '__')"
-            terraform plan -out="/tmp/tfplans/${safe_name}.tfplan"
+          for file in $ALL_CHANGED_FILES; do
+            dir=$(dirname "$file")
+            echo "Running terraform plan for ${file}"
+            cd "$(dirname "$file")/../../"
+            safe_name="$(echo "$(dirname "$file")" | tr '/ ' '__')"
+            terraform plan \
+              -backend-config="prefix=terraform/state/$(dirname "$file")" \
+              -out="/tmp/tfplans/${safe_name}.tfplan"
             terraform show -no-color "/tmp/tfplans/${safe_name}.tfplan" > "/tmp/tfplans/${safe_name}.txt"
             cd -
           done
