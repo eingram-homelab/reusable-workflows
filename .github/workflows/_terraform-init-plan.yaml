@@ -95,7 +95,6 @@ jobs:
             echo "Running terraform validate for ${file}"
             cd "$(dirname "$file")/../../"
             terraform validate \
-              -backend-config="prefix=terraform/state/$(dirname "$file")" \
               -var-file="./environments/$(basename "$(dirname "$file")")/$(basename "$file")" -input=false
             cd -
           done
