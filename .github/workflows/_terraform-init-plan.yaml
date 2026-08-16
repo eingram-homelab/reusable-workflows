@@ -100,7 +100,7 @@ jobs:
           for file in $ALL_CHANGED_FILES; do
             echo "Running terraform plan for ${file}"
             cd "$(dirname "$file")/../../"
-            safe_name="$(echo "$(dirname "$file")" | tr '/ ' '__')"
+            safe_name="$(dirname "$file" | tr '/ ' '__')"
             terraform plan \
               -backend-config="prefix=terraform/state/$(dirname "$file")" \
               -out="/tmp/tfplans/${safe_name}.tfplan"
