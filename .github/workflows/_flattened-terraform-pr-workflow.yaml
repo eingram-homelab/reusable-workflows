@@ -19,7 +19,7 @@ on:
       TERRAFORM_GITHUB_PAT:
         description: 'GitHub Personal Access Token for Terraform Cloud'
         required: true
-        
+
 jobs:
   check_for_changes:
     name: Check for changed files
@@ -40,4 +40,3 @@ jobs:
       all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-
