@@ -75,7 +75,7 @@ jobs:
             cd "$(dirname "$file")/../../"
             terraform init \
               -backend-config="prefix=terraform/state/$(dirname "$file")" \
-              -var-file="$(dirname "$file")/terraform.tfvars" -input=false
+              -var-file="$(dirname "$file")/$(basename "$file")" -input=false
             cd -
           done
 
@@ -88,7 +88,7 @@ jobs:
             cd "$(dirname "$file")/../../"
             terraform validate \
               -backend-config="prefix=terraform/state/$(dirname "$file")" \
-              -var-file="$(dirname "$file")/terraform.tfvars" -input=false
+              -var-file="$(dirname "$file")/$(basename "$file")" -input=false
             cd -
           done
 
@@ -100,9 +100,10 @@ jobs:
           for file in $ALL_CHANGED_FILES; do
             echo "Running terraform plan for ${file}"
             cd "$(dirname "$file")/../../"
-            safe_name="$(dirname "$file" | tr '/ ' '__')"
+            safe_name="$(dirname "$file" | tr '/' '_')_$(basename "$file" | tr '.' '_')"
             terraform plan \
               -backend-config="prefix=terraform/state/$(dirname "$file")" \
+              -var-file="$(dirname "$file")/$(basename "$file")" -input=false \
               -out="/tmp/tfplans/${safe_name}.tfplan"
             terraform show -no-color "/tmp/tfplans/${safe_name}.tfplan" > "/tmp/tfplans/${safe_name}.txt"
             cd -
