@@ -95,7 +95,7 @@ jobs:
             echo "Running terraform validate for ${file}"
             cd "$(dirname "$file")/../../"
             terraform validate \
-              -var-file="./environments/$(basename "$(dirname "$file")")/$(basename "$file")" -input=false
+              -var-file="./environments/$(basename "$(dirname "$file")")/$(basename "$file")"
             cd -
           done
 
