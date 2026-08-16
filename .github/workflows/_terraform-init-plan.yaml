@@ -71,6 +71,10 @@ jobs:
           ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
         run: |
           for file in $ALL_CHANGED_FILES; do
+            if [[ $file != *.tfvars ]]; then
+              echo "::notice::Skipping $file (not a .tfvars file)"
+              continue
+            fi
             echo "Running terraform init for ${file}"
             cd "$(dirname "$file")/../../"
             terraform init \
@@ -84,6 +88,10 @@ jobs:
           ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
         run: |
           for file in $ALL_CHANGED_FILES; do
+            if [[ $file != *.tfvars ]]; then
+              echo "::notice::Skipping $file (not a .tfvars file)"
+              continue
+            fi
             echo "Running terraform validate for ${file}"
             cd "$(dirname "$file")/../../"
             terraform validate \
@@ -98,6 +106,10 @@ jobs:
         run: |
           mkdir -p /tmp/tfplans
           for file in $ALL_CHANGED_FILES; do
+            if [[ $file != *.tfvars ]]; then
+              echo "::notice::Skipping $file (not a .tfvars file)"
+              continue
+            fi
             echo "Running terraform plan for ${file}"
             cd "$(dirname "$file")/../../"
             safe_name="$(dirname "$file" | tr '/' '_')_$(basename "$file" | tr '.' '_')"
