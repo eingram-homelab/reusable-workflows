@@ -98,7 +98,6 @@ jobs:
         run: |
           mkdir -p /tmp/tfplans
           for file in $ALL_CHANGED_FILES; do
-            dir=$(dirname "$file")
             echo "Running terraform plan for ${file}"
             cd "$(dirname "$file")/../../"
             safe_name="$(echo "$(dirname "$file")" | tr '/ ' '__')"
