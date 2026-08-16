@@ -16,7 +16,10 @@ on:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
         required: true
-        
+      TERRAFORM_GITHUB_PAT:
+        description: 'GitHub Personal Access Token for Terraform Cloud'
+        required: true
+
 jobs:
   check_for_changes:
     name: Check for changed files
@@ -29,10 +32,11 @@ jobs:
     needs: check_for_changes
     if: |
       needs.check_for_changes.outputs.any_changed == 'true' &&
-      contains(needs.check_for_changes.outputs.all_changed_files, '.tf')
+      contains(needs.check_for_changes.outputs.all_changed_files, '.tfvars')
     name: Init and Plan Terraform Projects
     uses: ./.github/workflows/_terraform-init-plan.yaml
     with:
-      all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
+      # all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
+      all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
