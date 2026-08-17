@@ -114,7 +114,7 @@ jobs:
             echo "Running terraform plan for ${file}"
             cd "$(dirname "$file")/../../"
             terraform_plan="$(basename "$(dirname "$file")" | tr '/' '_')_$(basename "$file" | tr '.' '_')"
-            echo "terraform_plan=$terraform_plan" >> $GITHUB_ENV
+            echo "terraform_plan=$terraform_plan" >> "$GITHUB_ENV"
             terraform plan \
               -var-file="./environments/$(basename "$(dirname "$file")")/$(basename "$file")" -input=false \
               -out="/tmp/tfplans/${terraform_plan}.tfplan"
