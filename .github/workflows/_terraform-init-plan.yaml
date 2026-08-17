@@ -54,7 +54,7 @@ jobs:
             fi
           done
           echo "Terraform Dirs - ${tf_dirs[*]}"
-          echo "tf_dirs=${tf_dirs[*]}" >> "$GITHUB_OUTPUT"
+          echo "tf_dirs=${tf_dirs}" >> "$GITHUB_OUTPUT"
 
   init_plan:
     name: Init and Plan Terraform Project
