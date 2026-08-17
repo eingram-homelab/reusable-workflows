@@ -49,7 +49,7 @@ jobs:
           ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
         run: |
           for dir in $ALL_CHANGED_DIRS; do
-            if find $dir -maxdepth 1 -type f -name "*.tfvars" | grep -q tfvars; then
+            if find "$dir" -maxdepth 1 -type f -name "*.tfvars" | grep -q tfvars; then
               tf_dirs+=("${dir}")
             fi
           done
@@ -96,8 +96,8 @@ jobs:
         env:
           DIR: ${{ matrix.tf_dir }}
         run: |
-          echo "Running terraform init for $DIR"
-          terraform init -backend-config="prefix="${DIR}")" -input=false
+          echo "Running terraform init for "$DIR""
+          terraform init -backend-config="prefix=${DIR}" -input=false
 
       - name: Run terraform validate
         working-directory: ${{ matrix.tf_dir }}
@@ -120,10 +120,10 @@ jobs:
         env:
           DIR: ${{ matrix.tf_dir }}
         run: |
-          echo "### 🚀 Terraform Plan Output" >> $GITHUB_STEP_SUMMARY
-          echo "<details><summary>Click to expand plan details</summary>" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`terraform" >> $GITHUB_STEP_SUMMARY
-          terraform show -no-color tfplan >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          echo "</details>" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 Terraform Plan Output" >> "$GITHUB_STEP_SUMMARY"
+          echo "<details><summary>Click to expand plan details</summary>" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`terraform" >> "$GITHUB_STEP_SUMMARY"
+          terraform show -no-color tfplan >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "</details>" >> "$GITHUB_STEP_SUMMARY"
