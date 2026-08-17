@@ -70,7 +70,6 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-      pull-requests: 'write'
     runs-on: arc-runners
     strategy:
       matrix:
