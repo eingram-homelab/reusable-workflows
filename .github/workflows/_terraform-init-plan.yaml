@@ -36,6 +36,7 @@ jobs:
   init_plan:
     name: Init and Plan Terraform Project
     permissions:
+      pull-requests: 'write'
       contents: 'read'
       id-token: 'write'
     runs-on: arc-runners
