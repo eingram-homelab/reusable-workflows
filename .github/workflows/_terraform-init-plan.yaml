@@ -11,8 +11,8 @@ on:
         description: 'Branch or ref to check out. Defaults to the PR head branch.'
         type: string
         default: ''
-      all_changed_files:
-        description: 'List of all changed files'
+      all_changed_dirs:
+        description: 'List of all changed dirs'
         type: string
         default: ''
       auth_token:
@@ -46,11 +46,11 @@ jobs:
       - name: Get dirs of changed Terraform files
         id: get-changed-dirs
         env:
-          ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
+          ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
         run: |
-          for file in $ALL_CHANGED_FILES; do
-            if [[ $file == *.tfvars || $file == *.tf ]]; then
-              tf_dirs+=("${file}")
+          for dir in $ALL_CHANGED_DIRS; do
+            if find $dir -maxdepth 1 -type f -name "*.tf*" then
+              tf_dirs+=("${dir}")
             fi
           done
           echo "tf_dirs=${tf_dirs[*]}" >> "$GITHUB_OUTPUT"
