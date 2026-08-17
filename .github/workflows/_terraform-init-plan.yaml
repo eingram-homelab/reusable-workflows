@@ -135,8 +135,15 @@ jobs:
           echo "</details>" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Plan Artifact
-        uses: actions/upload-artifact@v3.1.2
+        id: upload-plan-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: tfplan-${{ matrix.tf_dir }}
           path: tfplan-${{ matrix.tf_dir }}
           retention-days: 7
+
+      - name: Display artifact info
+        run: |
+          echo "Artifact Name: tfplan-${{ matrix.tf_dir }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact Path: tfplan-${{ matrix.tf_dir }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact ID: ${{ steps.upload-plan-artifact.outputs.artifact_id }}" >> "$GITHUB_STEP_SUMMARY"
