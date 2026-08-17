@@ -91,7 +91,7 @@ jobs:
           cache: false  # optional
           fail-on-error: false  # optional
           files: ${{ steps.list_changed_files_actionlint.outputs.final_file_list_actionlint }}
-          flags: -config-file .actionlint.yaml
+          flags: -config-file .actionlint
 
       - name: actionlint Summary
         if: ${{ steps.actionlint.outputs.exit-code != 0 }}  # example usage, do echo only when actionlint action failed
