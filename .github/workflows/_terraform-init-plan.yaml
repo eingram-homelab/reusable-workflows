@@ -100,6 +100,7 @@ jobs:
           done
 
       - name: Run terraform plan
+        id: terraform-plan
         env:
           ALL_CHANGED_FILES: ${{ inputs.all_changed_files }}
         run: |
@@ -111,18 +112,16 @@ jobs:
             fi
             echo "Running terraform plan for ${file}"
             cd "$(dirname "$file")/../../"
-            safe_name="$(basename "$(dirname "$file")" | tr '/' '_')_$(basename "$file" | tr '.' '_')"
+            terraform_plan="$(basename "$(dirname "$file")" | tr '/' '_')_$(basename "$file" | tr '.' '_')"
+            echo "terraform_plan=$terraform_plan" >> $GITHUB_ENV
             terraform plan \
               -var-file="./environments/$(basename "$(dirname "$file")")/$(basename "$file")" -input=false \
-              -out="/tmp/tfplans/${safe_name}.tfplan"
-            terraform show -no-color "/tmp/tfplans/${safe_name}.tfplan" > "/tmp/tfplans/${safe_name}.txt"
+              -out="/tmp/tfplans/${terraform_plan}.tfplan"
+            terraform show -no-color "/tmp/tfplans/${terraform_plan}.tfplan" > "/tmp/tfplans/${terraform_plan}.txt"
             cd -
           done
 
-      - name: Upload terraform plans
-        uses: actions/upload-artifact@v4
+      - name: Post terraform plan to PR
+        uses: towardsthecloud/terraform-plan-pr-commenter@v1
         with:
-          name: terraform-plans-${{ github.run_id }}
-          path: /tmp/tfplans/*
-          if-no-files-found: warn
-          retention-days: 7
+          planfile: /tmp/tfplans/${terraform_plan}.tfplan
