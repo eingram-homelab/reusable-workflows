@@ -26,13 +26,12 @@ jobs:
       ref: ${{ inputs.ref }}
 
   init_plan:
+    name: Init and Plan Terraform Projects
     needs: check_for_changes
     if: |
       needs.check_for_changes.outputs.any_changed == 'true' &&
       contains(needs.check_for_changes.outputs.all_changed_files, '.tfvars')
-    name: Init and Plan Terraform Projects
     permissions:
-      pull-requests: 'write'
       contents: 'read'
       id-token: 'write'
     uses: ./.github/workflows/_terraform-init-plan.yaml
@@ -41,3 +40,21 @@ jobs:
       # all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+
+  # apply_stg:
+  #   name: Apply Terraform Projects to Staging Environment
+  #   needs: init_plan
+  #   if: |
+  #     needs.check_for_changes.outputs.any_changed == 'true' &&
+  #     contains(needs.check_for_changes.outputs.all_changed_files, '.tfvars') &&
+  #     contains(needs.init_plan.outputs.tf_dirs, 'stg')
+  #   permissions:
+  #     contents: 'read'
+  #     id-token: 'write'
+  #   uses: ./.github/workflows/_terraform-apply.yaml
+  #   with:
+  #     tf_dirs: ${{ needs.init_plan.outputs.tf_dirs }}
+  #     artifact_id: ${{ github.run_id }}
+  #     environment: 'staging'
+  #   secrets:
+  #     VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
