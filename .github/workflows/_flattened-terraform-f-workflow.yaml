@@ -27,6 +27,6 @@ jobs:
       needs.check_for_changes.outputs.any_changed == 'true' &&
       contains(needs.check_for_changes.outputs.all_changed_files, '.tf')
     name: Check Format of Terraform Files
-    uses: ./.github/workflows/_terraform-validate.yaml
+    uses: ./.github/workflows/_terraform-lint.yaml
     with:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
