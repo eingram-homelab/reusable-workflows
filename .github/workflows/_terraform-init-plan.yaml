@@ -123,6 +123,6 @@ jobs:
           done
 
       - name: Post terraform plan to PR
-        uses: towardsthecloud/terraform-plan-pr-commenter@v1
+        uses: towardsthecloud/terraform-plan-pr-commenter@0d3a51655f7122332755acfa4824deed7c8f38dd
         with:
           planfile: /tmp/tfplans/${terraform_plan}.tfplan
