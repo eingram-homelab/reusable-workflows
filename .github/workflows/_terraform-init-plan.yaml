@@ -79,7 +79,6 @@ jobs:
           ref: ${{ inputs.ref || github.head_ref }}
 
       - name: Run terraform init
-        id: init
         working-directory: ${{ matrix.tf_dir }}
         env:
           DIR: ${{ matrix.tf_dir }}
@@ -87,30 +86,13 @@ jobs:
           echo "Running terraform init for $DIR"
           terraform init -backend-config="prefix="${DIR}")" -input=false
 
-      - name: Post Init
-        if: always() && github.ref != 'refs/heads/main' && (steps.init.outcome == 'success' || steps.init.outcome == 'failure')
-        uses: robburger/terraform-pr-commenter@72c6e45eced6641488a6cf3ff104b7b9bda9c66c
-        with:
-          commenter_type: init
-          commenter_input: ${{ format('{0}{1}', steps.init.outputs.stdout, steps.init.outputs.stderr) }}
-          commenter_exitcode: ${{ steps.init.outputs.exitcode }}
-
       - name: Run terraform validate
-        id: validate
         working-directory: ${{ matrix.tf_dir }}
         env:
           DIR: ${{ matrix.tf_dir }}
         run: |
             echo "Running terraform validate for $DIR"
             terraform validate
-
-      - name: Post Validate
-        if: always() && github.ref != 'refs/heads/main' && (steps.validate.outcome == 'success' || steps.validate.outcome == 'failure')
-        uses: robburger/terraform-pr-commenter@72c6e45eced6641488a6cf3ff104b7b9bda9c66c
-        with:
-          commenter_type: validate
-          commenter_input: ${{ format('{0}{1}', steps.validate.outputs.stdout, steps.validate.outputs.stderr) }}
-          commenter_exitcode: ${{ steps.validate.outputs.exitcode }}
 
       - name: Run terraform plan
         id: plan
@@ -121,10 +103,10 @@ jobs:
           echo "Running terraform plan for $DIR"
           terraform plan -input=false -out tfplan
 
-      - name: Post Plan
-        if: always() && github.ref != 'refs/heads/main' && (steps.plan.outcome == 'success' || steps.plan.outcome == 'failure')
-        uses: robburger/terraform-pr-commenter@72c6e45eced6641488a6cf3ff104b7b9bda9c66c
+      - name: Post terraform plan to PR
+        uses: actions/github-script@v7
         with:
-          commenter_type: plan
-          commenter_input: ${{ format('{0}{1}', steps.plan.outputs.stdout, steps.plan.outputs.stderr) }}
-          commenter_exitcode: ${{ steps.plan.outputs.exitcode }}
+          script: |
+            const output = `#### Terraform Plan: \`${{ steps.plan.outcome }}\`
+            <details><summary>Show Plan</summary>\n\`\`\`\n${{ steps.plan.outputs.stdout }}\n\`\`\`\n</details>`;
+            github.rest.issues.createComment({ ...context.issue, body: output });
