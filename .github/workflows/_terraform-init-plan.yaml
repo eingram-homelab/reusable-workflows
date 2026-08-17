@@ -96,7 +96,7 @@ jobs:
         env:
           DIR: ${{ matrix.tf_dir }}
         run: |
-          echo "Running terraform init for "$DIR""
+          echo "Running terraform init for ${DIR}"
           terraform init -backend-config="prefix=${DIR}" -input=false
 
       - name: Run terraform validate
