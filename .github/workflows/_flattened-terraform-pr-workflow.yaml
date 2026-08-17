@@ -37,7 +37,7 @@ jobs:
       id-token: 'write'
     uses: ./.github/workflows/_terraform-init-plan.yaml
     with:
-      # all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
-      all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
+      all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
+      # all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}

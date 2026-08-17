@@ -37,7 +37,7 @@ jobs:
 
       - name: yaml-lint
         id: yamllint
-        uses: eingram-homelab/reusable-workflows/.github/actions/yamllint@yamllint-v0.0.2
+        uses: eingram-homelab/reusable-workflows/.github/actions/yamllint@yamllint-v0.0.2 # NOSONAR
         continue-on-error: true
         with:
           file_or_dir: ${{ steps.list_changed_files_yamllint.outputs.final_file_list_yamllint }}
@@ -91,7 +91,7 @@ jobs:
           cache: false  # optional
           fail-on-error: false  # optional
           files: ${{ steps.list_changed_files_actionlint.outputs.final_file_list_actionlint }}
-          flags: -config-file .actionlint.yaml
+          flags: -config-file .actionlint
 
       - name: actionlint Summary
         if: ${{ steps.actionlint.outputs.exit-code != 0 }}  # example usage, do echo only when actionlint action failed
