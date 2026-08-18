@@ -45,6 +45,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Run TFLint
+        shell: bash
         env:
           ALL_CHANGED_DIRS: ${{ inputs.all_changed_dirs }}
         run: |

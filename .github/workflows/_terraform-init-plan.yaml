@@ -115,6 +115,7 @@ jobs:
       - name: Run terraform init
         id: init
         working-directory: ${{ matrix.tf_dir }}
+        shell: bash
         env:
           DIR: ${{ matrix.tf_dir }}
         run: |
@@ -136,6 +137,7 @@ jobs:
       - name: Run terraform validate
         id: validate
         working-directory: ${{ matrix.tf_dir }}
+        shell: bash
         env:
           DIR: ${{ matrix.tf_dir }}
         run: |
@@ -145,6 +147,7 @@ jobs:
       - name: Run terraform plan
         id: plan
         working-directory: ${{ matrix.tf_dir }}
+        shell: bash
         env:
           DIR: ${{ matrix.tf_dir }}
         run: |
@@ -186,6 +189,7 @@ jobs:
       - name: Post Plan to GitHub Actions Summary
         id: post-plan-summary
         working-directory: ${{ matrix.tf_dir }}
+        shell: bash
         env:
           DIR: ${{ matrix.tf_dir }}
         run: |
@@ -209,6 +213,7 @@ jobs:
           retention-days: 7
 
       - name: Display Artifact Info
+        shell: bash
         run: |
           echo "Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Artifact Name: tfplan-${{ steps.post-plan-summary.outputs.safe_name }}" >> "$GITHUB_STEP_SUMMARY"
@@ -216,6 +221,7 @@ jobs:
       
       - name: Collect list of staging Terraform directories and artifact names
         id: collect-staging-dirs-artifacts
+        shell: bash
         run: |
           staging_dirs=()
           artifact_names=()
