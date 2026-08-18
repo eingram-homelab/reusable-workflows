@@ -117,7 +117,7 @@ jobs:
 
       - name: Checkov
         id: checkov
-        uses: bridgecrewio/checkov-action@v12.0.0
+        uses: bridgecrewio/checkov-action@99bb2caf247dfd9f03cf984373bc6043d4e32ebf
         with:
           directory: ${{ matrix.tf_dir }}
           framework: terraform
@@ -148,7 +148,7 @@ jobs:
           terraform plan -no-color -input=false -out=tfplan-${safe_name}
 
       - name: PR Comment with Plan Output
-        uses: actions/github-script@v6
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         if: github.event_name == 'pull_request'
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
