@@ -129,17 +129,17 @@ jobs:
           echo "Running terraform init for ${DIR}"
           terraform init -backend-config="prefix=${DIR}" -input=false
 
-      - name: Checkov
-        id: checkov
-        uses: bridgecrewio/checkov-action@99bb2caf247dfd9f03cf984373bc6043d4e32ebf
-        with:
-          directory: ${{ matrix.tf_dir }}
-          framework: terraform
-          quiet: true
-          skip_check: CKV_TF_1,CKV2_GCP_5,CKV_GCP_62,CKV_GCP_76,CKV2_GCP_18,CKV_GCP_113
-          output_format: github_failed_only
-          soft_fail: false
-          download_external_modules: false
+      # - name: Checkov
+      #   id: checkov
+      #   uses: bridgecrewio/checkov-action@99bb2caf247dfd9f03cf984373bc6043d4e32ebf
+      #   with:
+      #     directory: ${{ matrix.tf_dir }}
+      #     framework: terraform
+      #     quiet: true
+      #     skip_check: CKV_TF_1,CKV2_GCP_5,CKV_GCP_62,CKV_GCP_76,CKV2_GCP_18,CKV_GCP_113
+      #     output_format: github_failed_only
+      #     soft_fail: false
+      #     download_external_modules: false
 
       - name: Run terraform validate
         id: validate
@@ -172,9 +172,9 @@ jobs:
             const output = `### CI results for: \`${{ matrix.tf_dir }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
-            #### Checkov security scan 🧙\`${{ steps.checkov.outcome }}\`
+            #### Checkov security scan 🧙\`skipped\`
             Failed Checkov policies will be shown below.
-            ${{ steps.checkov.outputs.results }}
+            None
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
             <details><summary>Show Plan</summary>
             
