@@ -147,5 +147,5 @@ jobs:
 
       - name: Display Artifact Info
         run: |
-          echo "Artifact ID: ${{ steps.upload-plan-artifact.outputs.artifact_id }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Plan file(s) uploaded for directory: ${{ matrix.tf_dir }}" >> "$GITHUB_STEP_SUMMARY"
