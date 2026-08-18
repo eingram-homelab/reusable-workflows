@@ -16,6 +16,10 @@ on:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
         required: true
+    outputs:
+      artifact-name:
+        description: 'Name of the artifact to use'
+        value: ${{ jobs.init_plan.outputs.artifact-name }}
 
 jobs:
   check_for_changes:
@@ -34,6 +38,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+      pull-requests: 'write'
     uses: ./.github/workflows/_terraform-init-plan.yaml
     with:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
@@ -41,20 +46,3 @@ jobs:
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
-  # apply_stg:
-  #   name: Apply Terraform Projects to Staging Environment
-  #   needs: init_plan
-  #   if: |
-  #     needs.check_for_changes.outputs.any_changed == 'true' &&
-  #     contains(needs.check_for_changes.outputs.all_changed_files, '.tfvars') &&
-  #     contains(needs.init_plan.outputs.tf_dirs, 'stg')
-  #   permissions:
-  #     contents: 'read'
-  #     id-token: 'write'
-  #   uses: ./.github/workflows/_terraform-apply.yaml
-  #   with:
-  #     tf_dirs: ${{ needs.init_plan.outputs.tf_dirs }}
-  #     artifact_id: ${{ github.run_id }}
-  #     environment: 'staging'
-  #   secrets:
-  #     VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}

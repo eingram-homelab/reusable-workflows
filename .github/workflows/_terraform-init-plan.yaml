@@ -28,12 +28,15 @@ on:
         description: 'Vault token for accessing secrets'
         required: true
     outputs:
-      tf_dirs:
+      staging_dirs:
         description: 'List of all changed dirs containing Terraform files'
-        value: ${{ jobs.set_files_dirs.outputs.tf_dirs }}
+        value: ${{ jobs.collect_staging_dirs.outputs.staging_dirs }}
       run_id:
         description: 'Run ID'
         value: ${{ github.run_id }}
+      artifact-name:
+        description: 'Name of the artifact to use'
+        value: ${{ jobs.init_plan.outputs.artifact-name }}
 
 jobs:
   set_files_dirs:
@@ -70,6 +73,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+      pull-requests: 'write'
     runs-on: arc-runners
     strategy:
       matrix:
@@ -103,6 +107,7 @@ jobs:
           terraform_version: ">= 1.15.0"
 
       - name: Run terraform init
+        id: init
         working-directory: ${{ matrix.tf_dir }}
         env:
           DIR: ${{ matrix.tf_dir }}
@@ -110,7 +115,20 @@ jobs:
           echo "Running terraform init for ${DIR}"
           terraform init -backend-config="prefix=${DIR}" -input=false
 
+      - name: Checkov
+        id: checkov
+        uses: bridgecrewio/checkov-action@v12.0.0
+        with:
+          directory: ${{ matrix.tf_dir }}
+          framework: terraform
+          quiet: true
+          skip_check: CKV_TF_1,CKV2_GCP_5,CKV_GCP_62,CKV_GCP_76,CKV2_GCP_18,CKV_GCP_113
+          output_format: github_failed_only
+          soft_fail: false
+          download_external_modules: false
+
       - name: Run terraform validate
+        id: validate
         working-directory: ${{ matrix.tf_dir }}
         env:
           DIR: ${{ matrix.tf_dir }}
@@ -119,6 +137,7 @@ jobs:
             terraform validate
 
       - name: Run terraform plan
+        id: plan
         working-directory: ${{ matrix.tf_dir }}
         env:
           DIR: ${{ matrix.tf_dir }}
@@ -127,6 +146,36 @@ jobs:
           safe_name="${DIR//\//_}"
           echo "Running terraform plan for $DIR"
           terraform plan -no-color -input=false -out=tfplan-${safe_name}
+
+      - name: PR Comment with Plan Output
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `### CI results for: \`${{ matrix.tf_dir }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Checkov security scan 🧙\`${{ steps.checkov.outcome }}\`
+            Failed Checkov policies will be shown below.
+            ${{ steps.checkov.outputs.results }}
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+            
+            \`\`\`
+            ${process.env.PLAN}
+            \`\`\`
+            
+            </details>
+            *Pushed by: @${{ github.actor }}*`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
 
       - name: Post Plan to GitHub Actions Summary
         id: post-plan-summary
@@ -158,3 +207,15 @@ jobs:
           echo "Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Artifact Name: tfplan-${{ steps.post-plan-summary.outputs.safe_name }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Plan file(s) uploaded for directory: ${{ matrix.tf_dir }}" >> "$GITHUB_STEP_SUMMARY"
+      
+      - name: Collect list of staging Terraform directories and artifact names
+        id: collect-staging-dirs-artifacts
+        run: |
+          staging_dirs=()
+          artifact_names=()
+          if [[ "${{ matrix.tf_dir }}" == *"environments/stg"* ]]; then
+            staging_dirs+=('${{ matrix.tf_dir }}')
+            artifact_names+=('tfplan-${{ steps.post-plan-summary.outputs.safe_name }}')
+          fi
+          echo "staging_dirs=${staging_dirs[*]}" >> "$GITHUB_OUTPUT"
+          echo "artifact_names=${artifact_names[*]}" >> "$GITHUB_OUTPUT"
