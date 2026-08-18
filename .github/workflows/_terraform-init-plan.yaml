@@ -74,6 +74,11 @@ jobs:
     strategy:
       matrix:
         tf_dir: ${{ fromJSON(needs.set_files_dirs.outputs.tf_dirs) }}
+      fail-fast: true
+      max-parallel: 2
+    concurrency:
+      group: "init-plan-${{ matrix.tf_dir }}"
+      cancel-in-progress: true
     env:
       VAULT_ADDR: ${{ vars.VAULT_ADDR }}
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
@@ -151,4 +156,5 @@ jobs:
       - name: Display Artifact Info
         run: |
           echo "Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact Name: tfplan-${{ steps.post-plan-summary.outputs.safe_name }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Plan file(s) uploaded for directory: ${{ matrix.tf_dir }}" >> "$GITHUB_STEP_SUMMARY"
