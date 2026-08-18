@@ -23,6 +23,10 @@ on:
         description: 'List of unique directory names containing changed files'
         value: ${{ jobs.check-for-changes.outputs.all_changed_dirs }}
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   check-for-changes:
     name: Check for changed files and dirs
