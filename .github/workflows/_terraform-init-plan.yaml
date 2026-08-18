@@ -31,8 +31,8 @@ on:
       tf_dirs:
         description: 'List of all changed dirs containing Terraform files'
         value: ${{ jobs.set_files_dirs.outputs.tf_dirs }}
-      artifact_id:
-        description: 'Artifact ID'
+      run_id:
+        description: 'Run ID'
         value: ${{ github.run_id }}
 
 jobs:
@@ -124,12 +124,14 @@ jobs:
           terraform plan -no-color -input=false -out=tfplan-${safe_name}
 
       - name: Post Plan to GitHub Actions Summary
+        id: post-plan-summary
         working-directory: ${{ matrix.tf_dir }}
         env:
           DIR: ${{ matrix.tf_dir }}
         run: |
           echo "Creating file name from matrix tf_dir: $DIR"
           safe_name="${DIR//\//_}"
+          echo "safe_name=$safe_name" >> "$GITHUB_OUTPUT"
           echo "### 🚀 Terraform Plan Output" >> "$GITHUB_STEP_SUMMARY"
           echo "<details><summary>Click to expand plan details</summary>" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -142,10 +144,11 @@ jobs:
         id: upload-plan-artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
+          name: tfplan-${{ steps.post-plan-summary.outputs.safe_name }}
           path: ${{ matrix.tf_dir }}/tfplan*
           retention-days: 7
 
       - name: Display Artifact Info
         run: |
-          echo "Artifact Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Plan file(s) uploaded for directory: ${{ matrix.tf_dir }}" >> "$GITHUB_STEP_SUMMARY"
