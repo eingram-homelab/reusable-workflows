@@ -23,6 +23,10 @@ on:
         description: 'Google Cloud project ID'
         type: string
         default: ''
+      pull_request_number:
+        description: 'Pull request number'
+        type: number
+        default: 0
     secrets:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
@@ -185,7 +189,7 @@ jobs:
             </details>
             *Pushed by: @${{ github.actor }}*`;
             github.rest.issues.createComment({
-              issue_number: context.payload.pull_request.number,
+              issue_number: ${{ inputs.pull_request_number }},
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: output
