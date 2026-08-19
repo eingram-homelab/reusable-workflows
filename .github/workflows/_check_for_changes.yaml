@@ -23,10 +23,16 @@ on:
         description: 'List of unique directory names containing changed files'
         value: ${{ jobs.check-for-changes.outputs.all_changed_dirs }}
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   check-for-changes:
     name: Check for changed files and dirs
     runs-on: arc-runners
+    container:
+      image: ghcr.io/actions/actions-runner:latest
     outputs:
       any_changed: ${{ steps.check-file-changes.outputs.any_changed }}
       all_changed_files: ${{ steps.check-file-changes.outputs.all_changed_files }}

@@ -12,10 +12,18 @@ on:
         description: 'Branch or ref to check out. Defaults to the PR head branch.'
         type: string
         default: ''
+      pull_request_number:
+        description: 'Pull request number'
+        type: number
+        default: 0
     secrets:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
         required: true
+    outputs:
+      artifact-name:
+        description: 'Name of the artifact to use'
+        value: ${{ jobs.init_plan.outputs.artifact-name }}
 
 jobs:
   check_for_changes:
@@ -26,18 +34,20 @@ jobs:
       ref: ${{ inputs.ref }}
 
   init_plan:
+    name: Init and Plan Terraform Projects
     needs: check_for_changes
     if: |
       needs.check_for_changes.outputs.any_changed == 'true' &&
       contains(needs.check_for_changes.outputs.all_changed_files, '.tfvars')
-    name: Init and Plan Terraform Projects
     permissions:
-      pull-requests: 'write'
       contents: 'read'
       id-token: 'write'
+      pull-requests: 'write'
     uses: ./.github/workflows/_terraform-init-plan.yaml
     with:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
       # all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
+      pull_request_number: ${{ inputs.pull_request_number }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+
