@@ -24,7 +24,6 @@ jobs:
   job_id:
     name: Get Google Cloud auth_token
     runs-on: arc-runners
-
     # Add "id-token" with the intended permissions.
     permissions:
       contents: 'read'

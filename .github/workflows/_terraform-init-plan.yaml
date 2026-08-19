@@ -52,8 +52,6 @@ jobs:
     permissions:
       contents: 'read'
     runs-on: arc-runners
-    container:
-      image: ghcr.io/actions/actions-runner:latest
     outputs:
       tf_dirs: ${{ steps.get-changed-dirs.outputs.tf_dirs }}
     steps:
@@ -85,9 +83,9 @@ jobs:
       contents: 'read'
       id-token: 'write'
       pull-requests: 'write'
-    runs-on: arc-runners
+    runs-on: arc-runners2
     container:
-      image: ghcr.io/actions/actions-runner:latest
+      image: ghcr.io/eingram-homelab/homelab-runner:1.0.2
     strategy:
       matrix:
         tf_dir: ${{ fromJSON(needs.set_files_dirs.outputs.tf_dirs) }}
