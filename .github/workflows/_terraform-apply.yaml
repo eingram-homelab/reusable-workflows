@@ -26,12 +26,10 @@ on:
       environment:
         description: 'Environment to apply Terraform changes to'
         type: string
-        default: ''
         required: true
       run-id:
         description: 'Run ID'
         type: string
-        default: ''
         required: true
     secrets:
       VAULT_TOKEN:
