@@ -126,8 +126,8 @@ jobs:
         id: init
         working-directory: ${{ matrix.tf_dir }}
         run: |
-          echo "Running terraform init for ${matrix.tf_dir}"
-          terraform init -backend-config="prefix=${matrix.tf_dir}" -input=false
+          echo "Running terraform init for ${{ matrix.tf_dir }}"
+          terraform init -backend-config="prefix=${{ matrix.tf_dir }}" -input=false
 
       # - name: Checkov
       #   id: checkov
@@ -145,7 +145,7 @@ jobs:
         id: validate
         working-directory: ${{ matrix.tf_dir }}
         run: |
-            echo "Running terraform validate for ${matrix.tf_dir}"
+            echo "Running terraform validate for ${{ matrix.tf_dir }}"
             terraform validate
 
       - name: Run terraform plan

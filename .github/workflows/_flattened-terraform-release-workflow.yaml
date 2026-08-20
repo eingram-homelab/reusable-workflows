@@ -33,12 +33,12 @@ jobs:
       repository: ${{ inputs.repository }}
       ref: ${{ inputs.ref }}
 
-  init_plan_apply:
+  init_apply:
     needs: check_for_changes
     if: |
       needs.check_for_changes.outputs.any_changed == 'true' &&
       contains(needs.check_for_changes.outputs.all_changed_files, '.tfvars')
-    name: Init Plan and Apply Terraform Projects
+    name: Init and Apply Terraform Projects
     permissions:
       contents: 'read'
       id-token: 'write'

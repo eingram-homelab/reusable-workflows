@@ -129,8 +129,8 @@ jobs:
         id: init
         working-directory: ${{ matrix.tf_dir }}
         run: |
-          echo "Running terraform init for ${matrix.tf_dir}"
-          terraform init -backend-config="prefix=${matrix.tf_dir}" -input=false
+          echo "Running terraform init for ${{ matrix.tf_dir }}"
+          terraform init -backend-config="prefix=${{ matrix.tf_dir }}" -input=false
 
       # - name: Checkov
       #   id: checkov
@@ -146,9 +146,11 @@ jobs:
 
       - name: Generate safe name for artifact download
         id: generate-safe-name
+        env:
+          DIR: ${{ matrix.tf_dir }}
         run: |
-          echo "Creating file name from matrix tf_dir: ${matrix.tf_dir}"
-          safe_name="${matrix.tf_dir//\//_}"
+          echo "Creating file name from matrix tf_dir: ${{ matrix.tf_dir }}"
+          safe_name="${DIR//\//_}"
           echo "File name: $safe_name"
           echo "safe_name=$safe_name" >> "$GITHUB_OUTPUT"
 
