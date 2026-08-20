@@ -33,10 +33,6 @@ on:
         type: string
         default: ''
         required: true
-      all_changed_dirs:
-        description: 'List of all changed dirs containing Terraform files'
-        type: string
-        default: ''
     secrets:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
