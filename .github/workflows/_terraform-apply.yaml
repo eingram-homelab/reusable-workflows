@@ -58,7 +58,11 @@ jobs:
           ref: ${{ inputs.ref || github.head_ref }}
 
       - name: Setup GitHub CLI
-        uses: wusatosi/setup-gh@7dae6c8246092454793fe35dd4d5a9e8bf8ed34d
+        run: |
+          sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+          sudo apt-add-repository https://cli.github.com/packages
+          sudo apt update
+          sudo apt install gh
 
       - name: Get run ID for merge commit
         id: find
