@@ -28,21 +28,18 @@ on:
         type: string
         default: ''
         required: true
-      run_id:
+      run-id:
         description: 'Run ID'
         type: string
         default: ''
         required: true
-      staging_dirs:
+      all_changed_dirs:
         description: 'List of all changed dirs containing Terraform files'
         type: string
         default: ''
     secrets:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
-        required: true
-      GITHUB_TOKEN:
-        description: 'GitHub token for accessing the repository'
         required: true
 
 defaults:
