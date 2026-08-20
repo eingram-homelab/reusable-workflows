@@ -32,15 +32,15 @@ on:
         description: 'Vault token for accessing secrets'
         required: true
     outputs:
-      staging_dirs:
-        description: 'List of all changed dirs containing Terraform files'
-        value: ${{ jobs.collect_staging_dirs.outputs.staging_dirs }}
+    #   staging_dirs:
+    #     description: 'List of all changed dirs containing Terraform files'
+    #     value: ${{ jobs.collect_staging_dirs.outputs.staging_dirs }}
       run_id:
         description: 'Run ID'
         value: ${{ github.run_id }}
-      artifact-name:
-        description: 'Name of the artifact to use'
-        value: ${{ jobs.init_plan.outputs.artifact-name }}
+    #   artifact-names:
+    #     description: 'Name of the artifact to use'
+    #     value: ${{ jobs.init_plan.outputs.artifact-names }}
 
 defaults:
   run:
@@ -125,11 +125,9 @@ jobs:
       - name: Run terraform init
         id: init
         working-directory: ${{ matrix.tf_dir }}
-        env:
-          DIR: ${{ matrix.tf_dir }}
         run: |
-          echo "Running terraform init for ${DIR}"
-          terraform init -backend-config="prefix=${DIR}" -input=false
+          echo "Running terraform init for ${matrix.tf_dir}"
+          terraform init -backend-config="prefix=${matrix.tf_dir}" -input=false
 
       # - name: Checkov
       #   id: checkov
@@ -146,10 +144,8 @@ jobs:
       - name: Run terraform validate
         id: validate
         working-directory: ${{ matrix.tf_dir }}
-        env:
-          DIR: ${{ matrix.tf_dir }}
         run: |
-            echo "Running terraform validate for $DIR"
+            echo "Running terraform validate for ${matrix.tf_dir}"
             terraform validate
 
       - name: Run terraform plan
@@ -160,6 +156,7 @@ jobs:
         run: |
           echo "Creating file name from matrix tf_dir: $DIR"
           safe_name="${DIR//\//_}"
+          echo "safe_name=$safe_name" >> "$GITHUB_OUTPUT"
           echo "Running terraform plan for $DIR"
           terraform plan -no-color -input=false -out=tfplan-${safe_name}
 
@@ -200,13 +197,11 @@ jobs:
           DIR: ${{ matrix.tf_dir }}
         run: |
           echo "Creating file name from matrix tf_dir: $DIR"
-          safe_name="${DIR//\//_}"
-          echo "safe_name=$safe_name" >> "$GITHUB_OUTPUT"
           echo "### 🚀 Terraform Plan Output" >> "$GITHUB_STEP_SUMMARY"
           echo "<details><summary>Click to expand plan details</summary>" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "\`\`\`terraform" >> "$GITHUB_STEP_SUMMARY"
-          terraform show -no-color tfplan-${safe_name} >> "$GITHUB_STEP_SUMMARY"
+          terraform show -no-color tfplan-${{ steps.plan.outputs.safe_name }} >> "$GITHUB_STEP_SUMMARY"
           echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
           echo "</details>" >> "$GITHUB_STEP_SUMMARY"
 
@@ -214,24 +209,12 @@ jobs:
         id: upload-plan-artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: tfplan-${{ steps.post-plan-summary.outputs.safe_name }}
+          name: tfplan-${{ steps.plan.outputs.safe_name }}
           path: ${{ matrix.tf_dir }}/tfplan*
           retention-days: 7
 
       - name: Display Artifact Info
         run: |
           echo "Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "Artifact Name: tfplan-${{ steps.post-plan-summary.outputs.safe_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact Name: tfplan-${{ steps.plan.outputs.safe_name }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Plan file(s) uploaded for directory: ${{ matrix.tf_dir }}" >> "$GITHUB_STEP_SUMMARY"
-      
-      - name: Collect list of staging Terraform directories and artifact names
-        id: collect-staging-dirs-artifacts
-        run: |
-          staging_dirs=()
-          artifact_names=()
-          if [[ "${{ matrix.tf_dir }}" == *"environments/stg"* ]]; then
-            staging_dirs+=('${{ matrix.tf_dir }}')
-            artifact_names+=('tfplan-${{ steps.post-plan-summary.outputs.safe_name }}')
-          fi
-          echo "staging_dirs=${staging_dirs[*]}" >> "$GITHUB_OUTPUT"
-          echo "artifact_names=${artifact_names[*]}" >> "$GITHUB_OUTPUT"
