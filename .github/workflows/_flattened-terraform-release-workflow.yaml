@@ -14,7 +14,7 @@ on:
         default: ''
       run-id:
         description: 'Run ID'
-        type: number
+        type: string
         required: true
       environment:
         description: 'Environment to apply Terraform changes to'
