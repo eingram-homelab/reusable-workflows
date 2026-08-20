@@ -42,6 +42,7 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+      actions: 'read'
     uses: ./.github/workflows/_terraform-apply.yaml
     with:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
