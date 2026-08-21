@@ -30,7 +30,7 @@ on:
 
 jobs:
   get_pr_status:
-    name: Get PR Status
+    name: Check PR Status
     if: ${{ inputs.environment == 'production' }}
     permissions:
       contents: 'read'
@@ -60,7 +60,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
       actions: 'read'
-    uses: ./.github/workflows/_terraform-apply.yaml
+    uses: ./.github/workflows/_terraform-init-apply.yaml
     with:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
       run-id: ${{ inputs.run-id }}

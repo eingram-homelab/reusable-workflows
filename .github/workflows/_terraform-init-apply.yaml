@@ -214,7 +214,7 @@ jobs:
         id: apply
         working-directory: ${{ matrix.tf_dir }}
         env:
-          GH_TOKEN: ${{ secrets.GH_TF_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TF_TOKEN }} # Needed for creating GitHub repos
         run: |
           echo "Running terraform apply for ${{ steps.generate-safe-name.outputs.safe_name }}"
           terraform apply -input=false -auto-approve "tfplan-${{ steps.generate-safe-name.outputs.safe_name }}"

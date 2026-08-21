@@ -36,6 +36,8 @@ jobs:
 
       - name: Check for PR Approval
         id: pr-status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           pr=$(gh api repos/${{ inputs.repository || github.repository }}/actions/runs/${{ inputs.run-id }} --jq '.pull_requests[].number')
           pr_status=$(gh api repos/${{ inputs.repository || github.repository }}/pulls/${pr} --jq '.state')
