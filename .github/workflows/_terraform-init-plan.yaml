@@ -158,7 +158,7 @@ jobs:
           safe_name="${DIR//\//_}"
           echo "safe_name=$safe_name" >> "$GITHUB_OUTPUT"
           echo "Running terraform plan for $DIR"
-          terraform plan -no-color -input=false -out=tfplan-${safe_name}
+          terraform plan -no-color -input=false -out=tfplan-"${safe_name}"
 
       - name: PR Comment with Plan Output
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
@@ -201,7 +201,7 @@ jobs:
           echo "<details><summary>Click to expand plan details</summary>" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "\`\`\`terraform" >> "$GITHUB_STEP_SUMMARY"
-          terraform show -no-color tfplan-${{ steps.plan.outputs.safe_name }} >> "$GITHUB_STEP_SUMMARY"
+          terraform show -no-color tfplan-"${{ steps.plan.outputs.safe_name }}" >> "$GITHUB_STEP_SUMMARY"
           echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
           echo "</details>" >> "$GITHUB_STEP_SUMMARY"
 
@@ -213,7 +213,7 @@ jobs:
           path: ${{ matrix.tf_dir }}/tfplan*
           retention-days: 7
 
-      - name: Display Artifact Info
+      - name: Display Summary Info
         run: |
           echo "Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Artifact Name: tfplan-${{ steps.plan.outputs.safe_name }}" >> "$GITHUB_STEP_SUMMARY"

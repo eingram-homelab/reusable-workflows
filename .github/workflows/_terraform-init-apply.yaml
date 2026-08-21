@@ -30,7 +30,7 @@ on:
       run-id:
         description: 'Run ID'
         type: string
-        default: ''
+        required: false
     secrets:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
@@ -87,7 +87,7 @@ jobs:
   set_files_dirs:
     name: Set Changed Files and Directories
     needs: get_run_id
-    if: ${{ always() && (needs.get_run_id.outputs.run-id != '' || inputs.run-id != '') }}
+    if: ${{ (always() && needs.get_run_id.outputs.run-id != '') || inputs.run-id != '' }}
     permissions:
       contents: 'read'
     runs-on: arc-runners
@@ -116,7 +116,7 @@ jobs:
           fi
           tf_dirs=()
           for dir in $ALL_CHANGED_DIRS; do
-            if [[ "${dir}" == *"${ENVIRONMENT}"* ]]; then
+            if [[ "${dir}" == */environments/"${ENVIRONMENT}" ]]; then
               if find "$dir" -maxdepth 1 -type f -name "*.tfvars" | grep -q tfvars; then
                 tf_dirs+=("${dir}")
               fi
@@ -129,8 +129,9 @@ jobs:
   init_apply:
     name: Init and Apply Terraform Project
     needs:
-      - get_run_id
       - set_files_dirs
+      - get_run_id
+    if: ${{ (always() && needs.get_run_id.outputs.run-id != '') || inputs.run-id != '' }}
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -214,7 +215,7 @@ jobs:
         id: apply
         working-directory: ${{ matrix.tf_dir }}
         env:
-          GH_TOKEN: ${{ secrets.GH_TF_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TF_TOKEN }} # Needed for creating GitHub repos
         run: |
           echo "Running terraform apply for ${{ steps.generate-safe-name.outputs.safe_name }}"
           terraform apply -input=false -auto-approve "tfplan-${{ steps.generate-safe-name.outputs.safe_name }}"
