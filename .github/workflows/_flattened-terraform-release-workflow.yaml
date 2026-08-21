@@ -29,8 +29,22 @@ on:
         required: true
 
 jobs:
+  get_pr_status:
+    name: Get PR Status
+    if: ${{ inputs.environment == 'production' }}
+    permissions:
+      contents: 'read'
+      pull-requests: 'read'
+    uses: ./.github/workflows/_check_pr_status.yaml
+    with:
+      repository: ${{ inputs.repository }}
+      ref: ${{ inputs.ref }}
+      run-id: ${{ inputs.run-id }}
+
   check_for_changes:
     name: Check for changed files
+    needs: get_pr_status
+    if: ${{ always() && inputs.environment == 'production' || inputs.environment == 'staging' }}
     uses: ./.github/workflows/_check_for_changes.yaml
     with:
       repository: ${{ inputs.repository }}

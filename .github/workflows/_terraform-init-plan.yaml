@@ -213,7 +213,7 @@ jobs:
           path: ${{ matrix.tf_dir }}/tfplan*
           retention-days: 7
 
-      - name: Display Artifact Info
+      - name: Display Summary Info
         run: |
           echo "Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Artifact Name: tfplan-${{ steps.plan.outputs.safe_name }}" >> "$GITHUB_STEP_SUMMARY"

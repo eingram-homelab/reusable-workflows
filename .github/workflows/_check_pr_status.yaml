@@ -1,0 +1,46 @@
+---
+name: Check PR Status
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: 'Repository to check for PR status'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out. Defaults to the current ref.'
+        type: string
+        default: ''
+      run-id:
+        description: 'Run ID'
+        type: string
+        required: true
+  
+permissions:
+  contents: 'read'
+  pull-requests: 'read'
+
+jobs:
+  get-pr-status:
+    name: Get PR Status
+    runs-on: arc-runners
+    outputs:
+      pr-status: ${{ steps.pr-status.outputs.pr-status }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Check for PR Approval
+        id: pr-status
+        run: |
+          pr=$(gh api repos/${{ inputs.repository || github.repository }}/actions/runs/${{ inputs.run-id }} --jq '.pull_requests[].number')
+          pr_status=$(gh api repos/${{ inputs.repository || github.repository }}/pulls/${pr} --jq '.state')
+          echo "PR Status: $pr_status"
+          if [[ "$pr_status" != "MERGED" ]]; then
+            echo "PR is not merged. Exiting."
+            exit 1
+          fi
