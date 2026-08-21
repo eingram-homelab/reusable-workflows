@@ -24,6 +24,9 @@ on:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
         required: true
+      GH_TF_TOKEN:
+        description: 'GitHub token for accessing Terraform plan artifacts'
+        required: true
 
 jobs:
   check_for_changes:
@@ -50,3 +53,4 @@ jobs:
       environment: ${{ inputs.environment }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+      GH_TF_TOKEN: ${{ secrets.GH_TF_TOKEN }}

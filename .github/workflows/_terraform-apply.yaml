@@ -35,6 +35,9 @@ on:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
         required: true
+      GH_TF_TOKEN:
+        description: 'GitHub token for accessing Terraform plan artifacts'
+        required: true
 
 defaults:
   run:
@@ -211,7 +214,7 @@ jobs:
         id: apply
         working-directory: ${{ matrix.tf_dir }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TF_TOKEN }}
         run: |
           echo "Running terraform apply for ${{ steps.generate-safe-name.outputs.safe_name }}"
           terraform apply -input=false -auto-approve "tfplan-${{ steps.generate-safe-name.outputs.safe_name }}"
