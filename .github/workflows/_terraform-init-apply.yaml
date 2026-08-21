@@ -87,7 +87,7 @@ jobs:
   set_files_dirs:
     name: Set Changed Files and Directories
     needs: get_run_id
-    if: ${{ always() && (needs.get_run_id.outputs.run-id != '' || inputs.run-id != '') }}
+    if: ${{ (always() && needs.get_run_id.outputs.run-id != '') || inputs.run-id != '' }}
     permissions:
       contents: 'read'
     runs-on: arc-runners
@@ -116,7 +116,7 @@ jobs:
           fi
           tf_dirs=()
           for dir in $ALL_CHANGED_DIRS; do
-            if [[ "${dir}" == *"${ENVIRONMENT}"* ]]; then
+            if [[ "${dir}" == */environments/"${ENVIRONMENT}" ]]; then
               if find "$dir" -maxdepth 1 -type f -name "*.tfvars" | grep -q tfvars; then
                 tf_dirs+=("${dir}")
               fi
@@ -130,6 +130,8 @@ jobs:
     name: Init and Apply Terraform Project
     needs:
       - set_files_dirs
+      - get_run_id
+    if: ${{ (always() && needs.get_run_id.outputs.run-id != '') || inputs.run-id != '' }}
     permissions:
       contents: 'read'
       id-token: 'write'

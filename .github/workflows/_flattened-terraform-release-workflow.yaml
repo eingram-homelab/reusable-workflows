@@ -43,8 +43,6 @@ jobs:
 
   check_for_changes:
     name: Check for changed files
-    needs: get_pr_status
-    if: ${{ always() && inputs.environment == 'production' || inputs.environment == 'staging' }}
     uses: ./.github/workflows/_check_for_changes.yaml
     with:
       repository: ${{ inputs.repository }}
