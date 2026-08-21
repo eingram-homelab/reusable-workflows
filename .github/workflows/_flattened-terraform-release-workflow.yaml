@@ -12,13 +12,20 @@ on:
         description: 'Branch or ref to check out. Defaults to the PR head branch.'
         type: string
         default: ''
-      skip_build:
-        description: 'Skip the Packer build step. Defaults to false.'
-        type: boolean
-        default: false
+      run-id:
+        description: 'Run ID'
+        type: string
+        required: true
+      environment:
+        description: 'Environment to apply Terraform changes to'
+        type: string
+        required: true
     secrets:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
+        required: true
+      GH_TF_TOKEN:
+        description: 'GitHub token for accessing Terraform plan artifacts'
         required: true
 
 jobs:
@@ -29,16 +36,21 @@ jobs:
       repository: ${{ inputs.repository }}
       ref: ${{ inputs.ref }}
 
-  apply:
+  init_apply:
     needs: check_for_changes
     if: |
       needs.check_for_changes.outputs.any_changed == 'true' &&
-      contains(needs.check_for_changes.outputs.all_changed_files, '.tf') &&
-      inputs.skip_build != 'true'
+      contains(needs.check_for_changes.outputs.all_changed_files, '.tfvars')
     name: Init and Apply Terraform Projects
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+      actions: 'read'
     uses: ./.github/workflows/_terraform-apply.yaml
     with:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
+      run-id: ${{ inputs.run-id }}
+      environment: ${{ inputs.environment }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-
+      GH_TF_TOKEN: ${{ secrets.GH_TF_TOKEN }}

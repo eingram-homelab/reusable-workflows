@@ -20,10 +20,6 @@ on:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
         required: true
-    outputs:
-      artifact-name:
-        description: 'Name of the artifact to use'
-        value: ${{ jobs.init_plan.outputs.artifact-name }}
 
 jobs:
   check_for_changes:
@@ -46,8 +42,6 @@ jobs:
     uses: ./.github/workflows/_terraform-init-plan.yaml
     with:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
-      # all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
       pull_request_number: ${{ inputs.pull_request_number }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
-
