@@ -38,11 +38,24 @@ jobs:
         id: pr-status
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ inputs.repository || github.repository }}
+          RUN_ID: ${{ inputs.run-id }}
         run: |
-          pr=$(gh api repos/${{ inputs.repository || github.repository }}/actions/runs/${{ inputs.run-id }} --jq '.pull_requests[].number')
-          pr_status=$(gh api repos/${{ inputs.repository || github.repository }}/pulls/${pr} --jq '.state')
-          echo "PR Status: $pr_status"
-          if [[ "$pr_status" != "MERGED" ]]; then
+          head_sha=$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}" --jq '.head_sha')
+          pr=$(gh api \
+            -H 'Accept: application/vnd.github+json' \
+            "repos/${REPOSITORY}/commits/${head_sha}/pulls" \
+            --jq '.[0].number')
+
+          if [[ -z "$pr" || "$pr" == "null" ]]; then
+            echo "No pull request found for workflow run ${RUN_ID} (commit ${head_sha})."
+            exit 1
+          fi
+
+          pr_status=$(gh api "repos/${REPOSITORY}/pulls/${pr}" --jq '.merged')
+          echo "PR #${pr} merged: ${pr_status}"
+          echo "pr-status=${pr_status}" >> "$GITHUB_OUTPUT"
+          if [[ "$pr_status" != "true" ]]; then
             echo "PR is not merged. Exiting."
             exit 1
           fi
