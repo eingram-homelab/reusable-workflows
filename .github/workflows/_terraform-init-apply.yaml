@@ -30,7 +30,7 @@ on:
       run-id:
         description: 'Run ID'
         type: string
-        default: ''
+        required: false
     secrets:
       VAULT_TOKEN:
         description: 'Vault token for accessing secrets'
@@ -129,7 +129,6 @@ jobs:
   init_apply:
     name: Init and Apply Terraform Project
     needs:
-      - get_run_id
       - set_files_dirs
     permissions:
       contents: 'read'
