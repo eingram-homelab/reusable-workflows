@@ -45,3 +45,15 @@ jobs:
       pull_request_number: ${{ inputs.pull_request_number }}
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+
+  alert_no_changes:
+    name: Alert No Changes
+    needs: check_for_changes
+    if: |
+      needs.check_for_changes.outputs.any_changed == 'false' ||
+      !contains(needs.check_for_changes.outputs.all_changed_files, '.tfvars')
+    runs-on: arc-runners
+    steps:
+      - run: |
+          echo "::warning title=No tfvars found::No .tfvars file found in the changed directories, skipping"
+          echo "- ⚠️ No \`.tfvars\` file found in the changed directories, skipping" >> "$GITHUB_STEP_SUMMARY"
