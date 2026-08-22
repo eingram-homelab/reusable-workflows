@@ -70,10 +70,6 @@ jobs:
           for dir in $ALL_CHANGED_DIRS; do
             if find "$dir" -maxdepth 1 -type f -name "*.tfvars" | grep -q tfvars; then
               tf_dirs+=("${dir}")
-            else
-              echo "::warning title=No tfvars found::No .tfvars file found in ${dir}, skipping"
-              echo "- ⚠️ No \`.tfvars\` file found in \`${dir}\`, skipping" >> "$GITHUB_STEP_SUMMARY"
-            fi
           done
           echo "Terraform Dirs - ${tf_dirs[*]}"
           json_array=$(jq --compact-output --null-input '$ARGS.positional' --args "${tf_dirs[@]}")
