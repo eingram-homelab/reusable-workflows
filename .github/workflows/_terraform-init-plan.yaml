@@ -217,9 +217,8 @@ jobs:
           retention-days: 7
 
       - name: Display Summary Info
+        if: endsWith(matrix.tf_dir, 'environments/prod')
         run: |
-          if [[ ${{ steps.plan.outputs.safe_name }} == *"environments_prod" ]]; then
-            echo "Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
-            echo "Artifact Name: tfplan-${{ steps.plan.outputs.safe_name }}" >> "$GITHUB_STEP_SUMMARY"
-            echo "Plan file(s) uploaded for directory: ${{ matrix.tf_dir }}" >> "$GITHUB_STEP_SUMMARY"
-          fi
+          echo "Run ID: ${{ github.run_id }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact Name: tfplan-${{ steps.plan.outputs.safe_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Plan file(s) uploaded for directory: ${{ matrix.tf_dir }}" >> "$GITHUB_STEP_SUMMARY"
