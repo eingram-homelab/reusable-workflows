@@ -61,3 +61,4 @@ jobs:
       - run: |
           echo "::warning title=No tfvars found::No .tfvars file found in the changed directories, skipping"
           echo "- ⚠️ No \`.tfvars\` file found in the changed directories, skipping" >> "$GITHUB_STEP_SUMMARY"
+          echo "This alert is normal if adding/updating modules" >> "$GITHUB_STEP_SUMMARY"
