@@ -34,6 +34,10 @@ jobs:
     needs: check_for_changes
     if: |
       needs.check_for_changes.outputs.any_changed == 'true' &&
+      (
+        contains(needs.check_for_changes.outputs.all_changed_dirs, '/environments/stg') ||
+        contains(needs.check_for_changes.outputs.all_changed_dirs, '/environments/prod')
+      ) &&
       contains(needs.check_for_changes.outputs.all_changed_files, '.tfvars')
     permissions:
       contents: 'read'
