@@ -56,6 +56,7 @@ jobs:
       - name: Publish Template
         run: |
           ./scripts/publish_template.ps1 `
+            -vCenter ${{ vars.VSPHERE_VCENTER }} `
             -newTemplateName "${{ inputs.TMPL_NAME }}" `
             -oldTemplateName "${{ steps.oldTemplateName.outputs.oldTemplateName }}"
           echo "::notice::Published template ${{ inputs.TMPL_NAME }} and removed old template ${{ steps.oldTemplateName.outputs.oldTemplateName }}"
