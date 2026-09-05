@@ -225,4 +225,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TF_TOKEN }} # Needed for creating GitHub repos
         run: |
           echo "Running terraform apply for ${{ steps.generate-safe-name.outputs.safe_name }}"
-          terraform apply -input=false -auto-approve "tfplan-${{ steps.generate-safe-name.outputs.safe_name }}"
+          terraform apply -parallelism=2 -input=false -auto-approve "tfplan-${{ steps.generate-safe-name.outputs.safe_name }}"
