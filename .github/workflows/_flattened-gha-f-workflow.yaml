@@ -1,5 +1,5 @@
 ---
-name: Flattened GitHub Actions Workflow Checks - Feature Branch
+name: Flattened GitHub Actions Workflow - Feature Branch
 
 on:
   workflow_call:

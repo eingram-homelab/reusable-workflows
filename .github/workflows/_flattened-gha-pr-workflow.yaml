@@ -1,5 +1,5 @@
 ---
-name: Flattened GitHub Actions Workflow Checks - Pull Request
+name: Flattened GitHub Actions Workflow - Pull Request
 
 on:
   workflow_call:
