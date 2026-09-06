@@ -1,0 +1,37 @@
+---
+name: Flattened Terraform Module Workflow - Release
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: 'Repository containing Terraform projects'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out. Defaults to the PR head branch.'
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  check_for_changes:
+    name: Check for changed files
+    uses: ./.github/workflows/_check_for_changes.yaml
+    with:
+      repository: ${{ inputs.repository }}
+      ref: ${{ inputs.ref }}
+
+  tag_release:
+    name: Tag Terraform Module Release
+    needs: check_for_changes
+    if: |
+      needs.check_for_changes.outputs.any_changed == 'true' &&
+      contains(needs.check_for_changes.outputs.all_changed_files, '.tf')
+    uses: ./.github/workflows/_tag-release.yaml
+    with:
+      repository: ${{ inputs.repository }}
+      ref: ${{ inputs.ref }}
+      changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}

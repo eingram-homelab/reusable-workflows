@@ -102,7 +102,7 @@ runs:
               ;;
           esac
 
-          new_tag="${action_name}-v${major}.${minor}.${patch}"
+          new_tag="v${major}.${minor}.${patch}"
 
           if git rev-parse "$new_tag" >/dev/null 2>&1; then
             echo "Tag $new_tag already exists, skipping"

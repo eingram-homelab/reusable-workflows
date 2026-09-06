@@ -1,0 +1,32 @@
+---
+name: Flattened Terraform Module Workflow - Pull Request
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: 'Repository containing Terraform projects'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out. Defaults to the PR head branch.'
+        type: string
+        default: ''
+
+jobs:
+  check_for_changes:
+    name: Check for changed files
+    uses: ./.github/workflows/_check_for_changes.yaml
+    with:
+      repository: ${{ inputs.repository }}
+      ref: ${{ inputs.ref }}
+
+  validate:
+    needs: check_for_changes
+    if: |
+      needs.check_for_changes.outputs.any_changed == 'true' &&
+      contains(needs.check_for_changes.outputs.all_changed_files, '.tf')
+    name: Check Format of Terraform Files
+    uses: ./.github/workflows/_terraform-lint.yaml
+    with:
+      all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}

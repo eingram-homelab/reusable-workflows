@@ -1,0 +1,47 @@
+---
+name: Tag release based on semanitic versioning of changed files
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        description: 'Repository containing Terraform projects'
+        type: string
+        default: ''
+      ref:
+        description: 'Branch or ref to check out. Defaults to the PR head branch.'
+        type: string
+        default: ''
+      changed_files:
+        description: 'List of all changed files'
+        type: string
+        default: ''
+
+jobs:
+  tag_release:
+    name: Tag Changed Actions
+    runs-on: arc-runners
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: 0
+
+      - name: Tag changed actions
+        id: tag_actions
+        uses: eingram-homelab/reusable-workflows/.github/actions/semver-tag@main
+        with:
+          before_sha: ${{ github.event.before }}
+          after_sha: ${{ github.sha }}
+          changed_files: ${{ inputs.changed_files }}
+          target_sha: ${{ github.sha }}
+
+      - name: Show release summary
+        shell: bash
+        run: |
+          echo "Calculated bump: ${{ steps.tag_actions.outputs.bump }}"
+          echo "Created tags: ${{ steps.tag_actions.outputs.created_tags || 'none' }}"
