@@ -33,7 +33,7 @@ jobs:
 
       - name: Tag changed actions
         id: tag_actions
-        uses: ./.github/actions/semver-tag
+        uses: eingram-homelab/reusable-workflows/.github/actions/semver-tag@add-terraform-module-workflows
         with:
           before_sha: ${{ github.event.before }}
           after_sha: ${{ github.sha }}
