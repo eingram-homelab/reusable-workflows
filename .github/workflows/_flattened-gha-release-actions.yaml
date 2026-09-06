@@ -1,0 +1,43 @@
+---
+name: Flattened GitHub Actions Workflow - Release Action
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  changes:
+    name: Check for changes
+    uses: ./.github/workflows/_check_for_changes.yaml
+    with:
+      repository: ${{ github.repository }}
+      ref: ${{ github.ref_name }}
+
+  tag:
+    name: Tag Changed Actions
+    needs: changes
+    if: |
+      needs.changes.outputs.any_changed == 'true' &&
+      contains(needs.changes.outputs.all_changed_files, '.github/actions/')
+    runs-on: arc-runners
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          fetch-depth: 0
+
+      - name: Tag changed actions
+        id: tag_actions
+        uses: ./.github/actions/actions-semver-tag
+        with:
+          before_sha: ${{ github.event.before }}
+          after_sha: ${{ github.sha }}
+          changed_files: ${{ needs.changes.outputs.all_changed_files }}
+          target_sha: ${{ github.sha }}
+
+      - name: Show action release tagging summary
+        run: |
+          echo "Calculated bump: ${{ steps.tag_actions.outputs.bump }}"
+          echo "Created tags: ${{ steps.tag_actions.outputs.created_tags || 'none' }}"
