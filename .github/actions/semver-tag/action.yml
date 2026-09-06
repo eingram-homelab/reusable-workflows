@@ -74,16 +74,15 @@ runs:
 
         for file in $CHANGED_FILES; do
           dir=$(dirname "$file")
-          action_name=$(basename "$dir")
 
-          latest_tag=$(git tag --list "${action_name}-v*" --sort=-version:refname | head -n1)
+          latest_tag=$(git tag --list "v*" --sort=-version:refname | head -n1)
 
           if [[ -z "$latest_tag" ]]; then
             major=0
             minor=0
             patch=0
           else
-            version="${latest_tag#${action_name}-v}"
+            version="${latest_tag#v}"
             IFS='.' read -r major minor patch <<< "$version"
           fi
 
