@@ -38,7 +38,10 @@ jobs:
         contains(needs.check_for_changes.outputs.all_changed_dirs, '/environments/stg') ||
         contains(needs.check_for_changes.outputs.all_changed_dirs, '/environments/prod')
       ) &&
-      contains(needs.check_for_changes.outputs.all_changed_files, '.tfvars')
+      (
+        contains(needs.check_for_changes.outputs.all_changed_files, '.tfvars') ||
+        contains(needs.check_for_changes.outputs.all_changed_files, '.tf')
+      )
     permissions:
       contents: 'read'
       id-token: 'write'
