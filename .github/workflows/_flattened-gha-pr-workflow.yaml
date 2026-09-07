@@ -52,7 +52,10 @@ jobs:
   validate:
     name: Run Validation Checks
     needs: check_for_changes
-    if: needs.check_for_changes.outputs.any_changed == 'true'
+    if: |
+      needs.check_for_changes.outputs.any_changed == 'true' &&
+      (contains(needs.check_for_changes.outputs.all_changed_files, '.github/workflows/') ||
+      contains(needs.check_for_changes.outputs.all_changed_files, '.github/actions/'))
     uses: ./.github/workflows/_gha-validate-workflow.yaml
     with:
       all_changed_files: ${{ needs.check_for_changes.outputs.all_changed_files }}
