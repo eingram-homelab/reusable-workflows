@@ -37,11 +37,11 @@ jobs:
     secrets:
       VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
-  publish_template:
-    needs: build
-    if: needs.build.outputs.SKIP_BUILD != 'true'
-    uses: ./.github/workflows/_packer-publish-template.yaml
-    with:
-      TMPL_NAME: ${{ needs.build.outputs.TMPL_NAME }}
-    secrets:
-      VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
+  # publish_template:
+  #   needs: build
+  #   if: needs.build.outputs.SKIP_BUILD != 'true'
+  #   uses: ./.github/workflows/_packer-publish-template.yaml
+  #   with:
+  #     TMPL_NAME: ${{ needs.build.outputs.TMPL_NAME }}
+  #   secrets:
+  #     VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
