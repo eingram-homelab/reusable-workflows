@@ -30,3 +30,17 @@ jobs:
     uses: ./.github/workflows/_terraform-lint.yaml
     with:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
+
+  ci-gate:
+    if: always()
+    needs: validate
+    runs-on: arc-runners
+    steps:
+      - name: CI Gate Check
+        run: |
+          if [[ "${{ contains(needs.validate.result, 'failure')}}"]] == true || \
+                "${{ contains(needs.validate.result, 'cancelled')}}"; then
+            exit(1)
+          fi
+
+    
