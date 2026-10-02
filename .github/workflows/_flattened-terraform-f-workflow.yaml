@@ -43,7 +43,7 @@ jobs:
         run: |
           if [[ "$FAILURE_CHECK" == "true" || \
                 "$CANCELLED_CHECK" == "true" ]]; then
-            exit(1)
+            exit 1
           fi
 
     
