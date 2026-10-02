@@ -37,9 +37,12 @@ jobs:
     runs-on: arc-runners
     steps:
       - name: CI Gate Check
+        env:
+          FAILURE_CHECK: ${{ contains(needs.*.result, 'failure') }}
+          CANCELLED_CHECK: ${{ contains(needs.*.result, 'cancelled') }}
         run: |
-          if [[ "${{ contains(needs.validate.result, 'failure')}}" == true || \
-                "${{ contains(needs.validate.result, 'cancelled')}}" ]]; then
+          if [[ "$FAILURE_CHECK" == "true" || \
+                "$CANCELLED_CHECK" == "true" ]]; then
             exit(1)
           fi
 
