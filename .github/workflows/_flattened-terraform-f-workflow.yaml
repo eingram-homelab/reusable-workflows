@@ -38,8 +38,8 @@ jobs:
     steps:
       - name: CI Gate Check
         run: |
-          if [[ "${{ contains(needs.validate.result, 'failure')}}" ]] == true || \
-                "${{ contains(needs.validate.result, 'cancelled')}}"; then
+          if [[ "${{ contains(needs.validate.result, 'failure')}}" == true || \
+                "${{ contains(needs.validate.result, 'cancelled')}}" ]]; then
             exit(1)
           fi
 
