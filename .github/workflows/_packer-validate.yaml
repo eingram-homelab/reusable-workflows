@@ -42,12 +42,14 @@ jobs:
               echo "::notice::Skipping $dir (no .hcl files found)"
               continue
             fi
-            echo "::notice::=== Processing $dir ==="
-            echo "::notice::Running packer fmt -check for $dir"
-            packer fmt -check "$dir"
-            # echo "::notice::Running packer init for $dir"
-            # packer init "$dir"
-            # echo "::notice::Running packer validate for $dir"
-            # packer validate "$dir"
-            # echo "::notice::Finished validating $dir"
+            if find "$dir" -maxdepth 1 -type f -iname '*.pkrvars.hcl' | grep -q .; then
+              echo "::notice::=== Processing $dir ==="
+              echo "::notice::Running packer fmt -check for $dir"
+              packer fmt -check "$dir"
+              # echo "::notice::Running packer init for $dir"
+              # packer init "$dir"
+              # echo "::notice::Running packer validate for $dir"
+              # packer validate "$dir"
+              # echo "::notice::Finished validating $dir"
+            fi
           done
