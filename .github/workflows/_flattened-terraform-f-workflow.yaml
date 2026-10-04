@@ -32,6 +32,7 @@ jobs:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
 
   ci-gate:
+    name: CI Gate
     if: always()
     needs: validate
     runs-on: arc-runners

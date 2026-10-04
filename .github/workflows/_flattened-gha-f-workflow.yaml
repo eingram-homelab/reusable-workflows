@@ -42,6 +42,7 @@ jobs:
       yamllint_config: ${{ inputs.yamllint_config }}
 
   ci-gate:
+    name: CI Gate
     if: always()
     needs: validate
     runs-on: arc-runners
