@@ -1,18 +1,18 @@
 ---
-name: Flattened Packer Workflow Checks - Feature Branch
+name: Flattened Terraform Module Workflow Checks - Feature Branch
 
 on:
   workflow_call:
     inputs:
       repository:
-        description: 'Repository containing Packer projects'
+        description: 'Repository containing Terraform projects'
         type: string
         default: ''
       ref:
         description: 'Branch or ref to check out. Defaults to the PR head branch.'
         type: string
         default: ''
-        
+
 jobs:
   check_for_changes:
     name: Check for changed files
@@ -25,9 +25,9 @@ jobs:
     needs: check_for_changes
     if: |
       needs.check_for_changes.outputs.any_changed == 'true' &&
-      contains(needs.check_for_changes.outputs.all_changed_files, '.hcl')
-    name: Check Format of Packer Files
-    uses: ./.github/workflows/_packer-validate.yaml
+      contains(needs.check_for_changes.outputs.all_changed_files, '.tf')
+    name: Check Format of Terraform Files
+    uses: ./.github/workflows/_terraform-lint.yaml
     with:
       all_changed_dirs: ${{ needs.check_for_changes.outputs.all_changed_dirs }}
 
@@ -46,3 +46,5 @@ jobs:
                 "$CANCELLED_CHECK" == "true" ]]; then
             exit 1
           fi
+
+    
